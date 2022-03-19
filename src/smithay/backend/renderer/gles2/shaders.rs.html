@@ -105,23 +105,16 @@
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
-<span id="103">103</span>
-<span id="104">104</span>
-<span id="105">105</span>
-<span id="106">106</span>
-<span id="107">107</span>
-<span id="108">108</span>
 </pre><pre class="rust"><code><span class="comment">/*
  * OpenGL Shaders
  */</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">VERTEX_SHADER</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">r#&quot;
 #version 100
 uniform mat3 matrix;
-uniform bool invert_y;
+uniform mat3 tex_matrix;
 
 attribute vec2 vert;
-attribute vec2 tex_coords;
-attribute vec4 position;
+attribute vec4 vert_position;
 
 varying vec2 v_tex_coords;
 
@@ -133,16 +126,11 @@ mat2 scale(vec2 scale_vec){
 }
 
 void main() {
-    if (invert_y) {
-        v_tex_coords = vec2(tex_coords.x, 1.0 - tex_coords.y);
-    } else {
-        v_tex_coords = tex_coords;
-    }
-
-    vec2 transform_translation = position.xy;
-    vec2 transform_scale = position.zw;
-    v_tex_coords = (vec3((v_tex_coords * scale(transform_scale)) + transform_translation, 1.0)).xy;
-    gl_Position = vec4(matrix * vec3((vert * scale(transform_scale)) + transform_translation, 1.0), 1.0);
+    vec2 vert_transform_translation = vert_position.xy;
+    vec2 vert_transform_scale = vert_position.zw;
+    vec3 position = vec3(vert * scale(vert_transform_scale) + vert_transform_translation, 1.0);
+    v_tex_coords = (tex_matrix * position).xy;
+    gl_Position = vec4(matrix * position, 1.0);
 }
 &quot;#</span>;
 
