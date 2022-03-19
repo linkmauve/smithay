@@ -632,7 +632,6 @@
 <span id="627">627</span>
 <span id="628">628</span>
 <span id="629">629</span>
-<span id="630">630</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Rendering functionality and abstractions</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Collection of common traits and implementations</span>
@@ -771,7 +770,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This operation is only valid in between a `begin` and `finish`-call.</span>
     <span class="doccomment">/// If called outside this operation may error-out, do nothing or modify future rendering results in any way.</span>
-    <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">color</span>: [<span class="ident">f32</span>; <span class="number">4</span>], <span class="ident">at</span>: <span class="kw-2">&amp;</span>[<span class="ident">Rectangle</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Physical</span><span class="op">&gt;</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">color</span>: [<span class="ident">f32</span>; <span class="number">4</span>], <span class="ident">at</span>: <span class="kw-2">&amp;</span>[<span class="ident">Rectangle</span><span class="op">&lt;</span><span class="ident">f64</span>, <span class="ident">Physical</span><span class="op">&gt;</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Render a texture to the current target as a flat 2d-plane at a given</span>
     <span class="doccomment">/// position and applying the given transformation with the given alpha value.</span>
@@ -784,7 +783,7 @@
         <span class="ident">texture_scale</span>: <span class="ident">i32</span>,
         <span class="ident">output_scale</span>: <span class="ident">f64</span>,
         <span class="ident">src_transform</span>: <span class="ident">Transform</span>,
-        <span class="ident">damage</span>: <span class="kw-2">&amp;</span>[<span class="ident">Rectangle</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Physical</span><span class="op">&gt;</span>],
+        <span class="ident">damage</span>: <span class="kw-2">&amp;</span>[<span class="ident">Rectangle</span><span class="op">&lt;</span><span class="ident">f64</span>, <span class="ident">Physical</span><span class="op">&gt;</span>],
         <span class="ident">alpha</span>: <span class="ident">f32</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">render_texture_from_to</span>(
@@ -796,8 +795,7 @@
                     .<span class="ident">size</span>()
                     .<span class="ident">to_logical</span>(<span class="ident">texture_scale</span>, <span class="ident">src_transform</span>)
                     .<span class="ident">to_f64</span>()
-                    .<span class="ident">to_physical</span>(<span class="ident">output_scale</span>)
-                    .<span class="ident">to_i32_round</span>(),
+                    .<span class="ident">to_physical</span>(<span class="ident">output_scale</span>),
             ),
             <span class="ident">damage</span>,
             <span class="ident">src_transform</span>,
@@ -813,7 +811,7 @@
         <span class="ident">texture</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::TextureId</span>,
         <span class="ident">src</span>: <span class="ident">Rectangle</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Buffer</span><span class="op">&gt;</span>,
         <span class="ident">dst</span>: <span class="ident">Rectangle</span><span class="op">&lt;</span><span class="ident">f64</span>, <span class="ident">Physical</span><span class="op">&gt;</span>,
-        <span class="ident">damage</span>: <span class="kw-2">&amp;</span>[<span class="ident">Rectangle</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Physical</span><span class="op">&gt;</span>],
+        <span class="ident">damage</span>: <span class="kw-2">&amp;</span>[<span class="ident">Rectangle</span><span class="op">&lt;</span><span class="ident">f64</span>, <span class="ident">Physical</span><span class="op">&gt;</span>],
         <span class="ident">src_transform</span>: <span class="ident">Transform</span>,
         <span class="ident">alpha</span>: <span class="ident">f32</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;

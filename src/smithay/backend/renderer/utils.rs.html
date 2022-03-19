@@ -616,13 +616,13 @@
                         <span class="comment">// then clamp to surface size again in logical space</span>
                         .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">geo</span><span class="op">|</span> <span class="ident">geo</span>.<span class="ident">intersection</span>(<span class="ident">Rectangle::from_loc_and_size</span>((<span class="number">0</span>, <span class="number">0</span>), <span class="ident">dimensions</span>)))
                         <span class="comment">// lastly transform it into physical space</span>
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">geo</span><span class="op">|</span> <span class="ident">geo</span>.<span class="ident">to_f64</span>().<span class="ident">to_physical</span>(<span class="ident">scale</span>).<span class="ident">to_i32_round</span>())
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">geo</span><span class="op">|</span> <span class="ident">geo</span>.<span class="ident">to_f64</span>().<span class="ident">to_physical</span>(<span class="ident">scale</span>))
                         .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
                     <span class="comment">// TODO: Take wp_viewporter into account</span>
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">render_texture_at</span>(
                         <span class="ident">texture</span>,
-                        <span class="ident">location</span>.<span class="ident">to_f64</span>().<span class="ident">to_physical</span>(<span class="ident">scale</span>).<span class="ident">to_i32_round</span>(),
+                        <span class="ident">location</span>.<span class="ident">to_f64</span>().<span class="ident">to_physical</span>(<span class="ident">scale</span>),
                         <span class="ident">buffer_scale</span>,
                         <span class="ident">scale</span>,
                         <span class="ident">attributes</span>.<span class="ident">buffer_transform</span>.<span class="ident">into</span>(),

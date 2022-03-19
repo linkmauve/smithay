@@ -1610,7 +1610,7 @@
                         <span class="comment">// Map from global space to output space</span>
                         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">geo</span><span class="op">|</span> <span class="ident">Rectangle::from_loc_and_size</span>(<span class="ident">geo</span>.<span class="ident">loc</span> <span class="op">-</span> <span class="ident">output_geo</span>.<span class="ident">loc</span>, <span class="ident">geo</span>.<span class="ident">size</span>))
                         <span class="comment">// Map from logical to physical</span>
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">geo</span><span class="op">|</span> <span class="ident">geo</span>.<span class="ident">to_f64</span>().<span class="ident">to_physical</span>(<span class="ident">state</span>.<span class="ident">render_scale</span>).<span class="ident">to_i32_round</span>())
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">geo</span><span class="op">|</span> <span class="ident">geo</span>.<span class="ident">to_f64</span>().<span class="ident">to_physical</span>(<span class="ident">state</span>.<span class="ident">render_scale</span>))
                         .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
                 )<span class="question-mark">?</span>;
                 <span class="comment">// Then re-draw all windows &amp; layers overlapping with a damage rect.</span>
@@ -1997,7 +1997,7 @@
 <span class="doccomment">/// # impl Frame for DummyFrame {</span>
 <span class="doccomment">/// #   type Error = SwapBuffersError;</span>
 <span class="doccomment">/// #   type TextureId = DummyTexture;</span>
-<span class="doccomment">/// #   fn clear(&amp;mut self, color: [f32; 4], at: &amp;[Rectangle&lt;i32, Physical&gt;]) -&gt; Result&lt;(), Self::Error&gt; { Ok(()) }</span>
+<span class="doccomment">/// #   fn clear(&amp;mut self, color: [f32; 4], at: &amp;[Rectangle&lt;f64, Physical&gt;]) -&gt; Result&lt;(), Self::Error&gt; { Ok(()) }</span>
 <span class="doccomment">/// #   #[allow(clippy::too_many_arguments)]</span>
 <span class="doccomment">/// #   fn render_texture_at(</span>
 <span class="doccomment">/// #       &amp;mut self,</span>
@@ -2006,7 +2006,7 @@
 <span class="doccomment">/// #       texture_scale: i32,</span>
 <span class="doccomment">/// #       output_scale: f64,</span>
 <span class="doccomment">/// #       src_transform: Transform,</span>
-<span class="doccomment">/// #       damage: &amp;[Rectangle&lt;i32, Physical&gt;],</span>
+<span class="doccomment">/// #       damage: &amp;[Rectangle&lt;f64, Physical&gt;],</span>
 <span class="doccomment">/// #       alpha: f32,</span>
 <span class="doccomment">/// #   ) -&gt; Result&lt;(), Self::Error&gt; {</span>
 <span class="doccomment">/// #       Ok(())</span>
@@ -2016,7 +2016,7 @@
 <span class="doccomment">/// #       texture: &amp;Self::TextureId,</span>
 <span class="doccomment">/// #       src: Rectangle&lt;i32, Buffer&gt;,</span>
 <span class="doccomment">/// #       dst: Rectangle&lt;f64, Physical&gt;,</span>
-<span class="doccomment">/// #       damage: &amp;[Rectangle&lt;i32, Physical&gt;],</span>
+<span class="doccomment">/// #       damage: &amp;[Rectangle&lt;f64, Physical&gt;],</span>
 <span class="doccomment">/// #       src_transform: Transform,</span>
 <span class="doccomment">/// #       alpha: f32,</span>
 <span class="doccomment">/// #   ) -&gt; Result&lt;(), Self::Error&gt; {</span>
