@@ -1048,21 +1048,6 @@
 <span id="1043">1043</span>
 <span id="1044">1044</span>
 <span id="1045">1045</span>
-<span id="1046">1046</span>
-<span id="1047">1047</span>
-<span id="1048">1048</span>
-<span id="1049">1049</span>
-<span id="1050">1050</span>
-<span id="1051">1051</span>
-<span id="1052">1052</span>
-<span id="1053">1053</span>
-<span id="1054">1054</span>
-<span id="1055">1055</span>
-<span id="1056">1056</span>
-<span id="1057">1057</span>
-<span id="1058">1058</span>
-<span id="1059">1059</span>
-<span id="1060">1060</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the [`Space`] helper class as well has related</span>
 <span class="doccomment">//! rendering helpers to add custom elements or different clients to a space.</span>
 
@@ -1091,7 +1076,6 @@
 <span class="kw">mod</span> <span class="ident">window</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::element</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident"><span class="self">self</span>::layer</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident"><span class="self">self</span>::output</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident"><span class="self">self</span>::window</span>::<span class="kw-2">*</span>;
 
@@ -1677,28 +1661,14 @@
     }
 
     <span class="doccomment">/// Sends the frame callback to mapped [`Window`]s and [`LayerSurface`]s.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `all` is set this will be send to `all` mapped surfaces.</span>
-    <span class="doccomment">/// Otherwise only windows and layers previously drawn during the</span>
-    <span class="doccomment">/// previous frame will be send frame events.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send_frames</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">all</span>: <span class="ident">bool</span>, <span class="ident">time</span>: <span class="ident">u32</span>) {
-        <span class="kw">for</span> <span class="ident">window</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">windows</span>.<span class="ident">iter</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> {
-            <span class="ident">all</span> <span class="op">|</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">window_state</span>(<span class="self">self</span>.<span class="ident">id</span>, <span class="ident">w</span>);
-                <span class="ident">std::mem::replace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>.<span class="ident">drawn</span>, <span class="bool-val">false</span>)
-            }
-        }) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send_frames</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">time</span>: <span class="ident">u32</span>) {
+        <span class="kw">for</span> <span class="ident">window</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">windows</span>.<span class="ident">iter</span>() {
             <span class="ident">window</span>.<span class="ident">send_frame</span>(<span class="ident">time</span>);
         }
 
         <span class="kw">for</span> <span class="ident">output</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">outputs</span>.<span class="ident">iter</span>() {
             <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">layer_map_for_output</span>(<span class="ident">output</span>);
-            <span class="kw">for</span> <span class="ident">layer</span> <span class="kw">in</span> <span class="ident">map</span>.<span class="ident">layers</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> {
-                <span class="ident">all</span> <span class="op">|</span><span class="op">|</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">layer_state</span>(<span class="self">self</span>.<span class="ident">id</span>, <span class="ident">l</span>);
-                    <span class="ident">std::mem::replace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>.<span class="ident">drawn</span>, <span class="bool-val">false</span>)
-                }
-            }) {
+            <span class="kw">for</span> <span class="ident">layer</span> <span class="kw">in</span> <span class="ident">map</span>.<span class="ident">layers</span>() {
                 <span class="ident">layer</span>.<span class="ident">send_frame</span>(<span class="ident">time</span>);
             }
         }
