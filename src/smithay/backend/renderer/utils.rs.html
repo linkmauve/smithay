@@ -321,6 +321,16 @@
 <span id="316">316</span>
 <span id="317">317</span>
 <span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Utility module for helpers around drawing [`WlSurface`]s with [`Renderer`]s.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -328,11 +338,10 @@
     <span class="ident">utils</span>::{<span class="ident">Buffer</span>, <span class="ident">Logical</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Size</span>, <span class="ident">Transform</span>},
     <span class="ident">wayland::compositor</span>::{
         <span class="ident">is_sync_subsurface</span>, <span class="ident">with_surface_tree_upward</span>, <span class="ident">BufferAssignment</span>, <span class="ident">Damage</span>, <span class="ident">SubsurfaceCachedState</span>,
-        <span class="ident">SurfaceAttributes</span>, <span class="ident">TraversalAction</span>,
+        <span class="ident">SurfaceAttributes</span>, <span class="ident">SurfaceData</span>, <span class="ident">TraversalAction</span>,
     },
 };
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;desktop&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
+<span class="kw">use</span> <span class="ident">std::collections::VecDeque</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">any::TypeId</span>,
     <span class="ident">cell::RefCell</span>,
@@ -342,14 +351,19 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">SurfaceState</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">commit_count</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">buffer_dimensions</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Size</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Buffer</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">buffer_scale</span>: <span class="ident">i32</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">buffer_transform</span>: <span class="ident">Transform</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">buffer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">WlBuffer</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">damage</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Rectangle</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Buffer</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">renderer_seen</span>: <span class="ident">HashMap</span><span class="op">&lt;</span>(<span class="ident">TypeId</span>, <span class="ident">usize</span>), <span class="ident">usize</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">textures</span>: <span class="ident">HashMap</span><span class="op">&lt;</span>(<span class="ident">TypeId</span>, <span class="ident">usize</span>), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">std::any::Any</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;desktop&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">damage_seen</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::desktop::space::SpaceOutputHash</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">space_seen</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::desktop::space::SpaceOutputHash</span>, <span class="ident">usize</span><span class="op">&gt;</span>,
 }
+
+<span class="kw">const</span> <span class="ident">MAX_DAMAGE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4</span>;
 
 <span class="kw">impl</span> <span class="ident">SurfaceState</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_buffer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">attrs</span>: <span class="kw-2">&amp;mut</span> <span class="ident">SurfaceAttributes</span>) {
@@ -357,16 +371,44 @@
             <span class="prelude-val">Some</span>(<span class="ident">BufferAssignment::NewBuffer</span> { <span class="ident">buffer</span>, .. }) =&gt; {
                 <span class="comment">// new contents</span>
                 <span class="self">self</span>.<span class="ident">buffer_dimensions</span> <span class="op">=</span> <span class="ident">buffer_dimensions</span>(<span class="kw-2">&amp;</span><span class="ident">buffer</span>);
+
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;desktop&quot;</span>)]</span>
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">buffer_scale</span> <span class="op">!</span><span class="op">=</span> <span class="ident">attrs</span>.<span class="ident">buffer_scale</span>
+                    <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">buffer_transform</span> <span class="op">!</span><span class="op">=</span> <span class="ident">attrs</span>.<span class="ident">buffer_transform</span>.<span class="ident">into</span>()
+                {
+                    <span class="self">self</span>.<span class="ident">reset_space_damage</span>();
+                }
                 <span class="self">self</span>.<span class="ident">buffer_scale</span> <span class="op">=</span> <span class="ident">attrs</span>.<span class="ident">buffer_scale</span>;
                 <span class="self">self</span>.<span class="ident">buffer_transform</span> <span class="op">=</span> <span class="ident">attrs</span>.<span class="ident">buffer_transform</span>.<span class="ident">into</span>();
+
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">old_buffer</span>) <span class="op">=</span> <span class="ident">std::mem::replace</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">buffer</span>, <span class="prelude-val">Some</span>(<span class="ident">buffer</span>)) {
                     <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">old_buffer</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>() {
                         <span class="ident">old_buffer</span>.<span class="ident">release</span>();
                     }
                 }
                 <span class="self">self</span>.<span class="ident">textures</span>.<span class="ident">clear</span>();
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;desktop&quot;</span>)]</span>
-                <span class="self">self</span>.<span class="ident">damage_seen</span>.<span class="ident">clear</span>();
+                <span class="self">self</span>.<span class="ident">commit_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">commit_count</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer_damage</span> <span class="op">=</span> <span class="ident">attrs</span>
+                    .<span class="ident">damage</span>
+                    .<span class="ident">drain</span>(..)
+                    .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">dmg</span><span class="op">|</span> {
+                        <span class="kw">match</span> <span class="ident">dmg</span> {
+                            <span class="ident">Damage::Buffer</span>(<span class="ident">rect</span>) =&gt; <span class="ident">rect</span>,
+                            <span class="ident">Damage::Surface</span>(<span class="ident">rect</span>) =&gt; <span class="ident">rect</span>.<span class="ident">to_buffer</span>(
+                                <span class="self">self</span>.<span class="ident">buffer_scale</span>,
+                                <span class="self">self</span>.<span class="ident">buffer_transform</span>,
+                                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">surface_size</span>().<span class="ident">unwrap</span>(),
+                            ),
+                        }
+                        .<span class="ident">intersection</span>(<span class="ident">Rectangle::from_loc_and_size</span>(
+                            (<span class="number">0</span>, <span class="number">0</span>),
+                            <span class="self">self</span>.<span class="ident">buffer_dimensions</span>.<span class="ident">unwrap</span>(),
+                        ))
+                    })
+                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Rectangle</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Buffer</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+                <span class="ident">buffer_damage</span>.<span class="ident">dedup</span>();
+                <span class="self">self</span>.<span class="ident">damage</span>.<span class="ident">push_front</span>(<span class="ident">buffer_damage</span>);
+                <span class="self">self</span>.<span class="ident">damage</span>.<span class="ident">truncate</span>(<span class="ident">MAX_DAMAGE</span>);
             }
             <span class="prelude-val">Some</span>(<span class="ident">BufferAssignment::Removed</span>) =&gt; {
                 <span class="comment">// remove the contents</span>
@@ -375,11 +417,42 @@
                     <span class="ident">buffer</span>.<span class="ident">release</span>();
                 };
                 <span class="self">self</span>.<span class="ident">textures</span>.<span class="ident">clear</span>();
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;desktop&quot;</span>)]</span>
-                <span class="self">self</span>.<span class="ident">damage_seen</span>.<span class="ident">clear</span>();
+                <span class="self">self</span>.<span class="ident">commit_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">commit_count</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
+                <span class="self">self</span>.<span class="ident">damage</span>.<span class="ident">clear</span>();
             }
             <span class="prelude-val">None</span> =&gt; {}
         }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">damage_since</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">commit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Rectangle</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Buffer</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="comment">// on overflow the wrapping_sub should end up</span>
+        <span class="kw">let</span> <span class="ident">recent_enough</span> <span class="op">=</span> <span class="ident">commit</span>
+            <span class="comment">// if commit &gt; commit_count we have overflown, in that case the following map might result</span>
+            <span class="comment">// in a false-positive, if commit is still very large. So we force false in those cases.</span>
+            <span class="comment">// That will result in a potentially sub-optimal full damage every usize::MAX frames,</span>
+            <span class="comment">// which is acceptable.</span>
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">commit</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">commit</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">commit_count</span>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">commit</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">commit_count</span>.<span class="ident">wrapping_sub</span>(<span class="self">self</span>.<span class="ident">damage</span>.<span class="ident">len</span>()) <span class="op">&lt;</span><span class="op">=</span> <span class="ident">commit</span>)
+            .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
+        <span class="kw">if</span> <span class="ident">recent_enough</span> {
+            <span class="self">self</span>.<span class="ident">damage</span>
+                .<span class="ident">iter</span>()
+                .<span class="ident">take</span>(<span class="self">self</span>.<span class="ident">commit_count</span>.<span class="ident">wrapping_sub</span>(<span class="ident">commit</span>.<span class="ident">unwrap</span>()))
+                .<span class="ident">fold</span>(<span class="ident">Vec::new</span>(), <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">acc</span>, <span class="ident">elem</span><span class="op">|</span> {
+                    <span class="ident">acc</span>.<span class="ident">extend</span>(<span class="ident">elem</span>);
+                    <span class="ident">acc</span>
+                })
+        } <span class="kw">else</span> {
+            <span class="self">self</span>.<span class="ident">buffer_dimensions</span>
+                .<span class="ident">as_ref</span>()
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">size</span><span class="op">|</span> <span class="macro">vec!</span>[<span class="ident">Rectangle::from_loc_and_size</span>((<span class="number">0</span>, <span class="number">0</span>), <span class="kw-2">*</span><span class="ident">size</span>)])
+                .<span class="ident">unwrap_or_else</span>(<span class="ident">Vec::new</span>)
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;desktop&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset_space_damage</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+        <span class="self">self</span>.<span class="ident">space_seen</span>.<span class="ident">clear</span>();
     }
 
     <span class="doccomment">/// Returns the size of the surface.</span>
@@ -440,37 +513,40 @@
     <span class="ident">R</span>: <span class="ident">Renderer</span> <span class="op">+</span> <span class="ident">ImportAll</span>,
     <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">Renderer</span><span class="op">&gt;</span><span class="ident">::TextureId</span>: <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="prelude-val">Ok</span>(());
+    <span class="ident">import_surface_tree_and</span>(<span class="ident">renderer</span>, <span class="ident">surface</span>, <span class="ident">log</span>, (<span class="number">0</span>, <span class="number">0</span>).<span class="ident">into</span>(), <span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> {})
+}
+
+<span class="kw">fn</span> <span class="ident">import_surface_tree_and</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(
+    <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>,
+    <span class="ident">surface</span>: <span class="kw-2">&amp;</span><span class="ident">WlSurface</span>,
+    <span class="ident">log</span>: <span class="kw-2">&amp;</span><span class="ident">slog::Logger</span>,
+    <span class="ident">location</span>: <span class="ident">Point</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Logical</span><span class="op">&gt;</span>,
+    <span class="ident">processor</span>: <span class="ident">F</span>,
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">Renderer</span><span class="op">&gt;</span><span class="ident">::Error</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">R</span>: <span class="ident">Renderer</span> <span class="op">+</span> <span class="ident">ImportAll</span>,
+    <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">Renderer</span><span class="op">&gt;</span><span class="ident">::TextureId</span>: <span class="lifetime">&#39;static</span>,
+    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">WlSurface</span>, <span class="kw-2">&amp;</span><span class="ident">SurfaceData</span>, <span class="kw-2">&amp;</span><span class="ident">Point</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Logical</span><span class="op">&gt;</span>),
+{
     <span class="kw">let</span> <span class="ident">texture_id</span> <span class="op">=</span> (<span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">Renderer</span><span class="op">&gt;</span><span class="ident">::TextureId</span><span class="op">&gt;</span>(), <span class="ident">renderer</span>.<span class="ident">id</span>());
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="prelude-val">Ok</span>(());
     <span class="ident">with_surface_tree_upward</span>(
         <span class="ident">surface</span>,
-        (),
-        <span class="op">|</span><span class="ident">_surface</span>, <span class="ident">states</span>, <span class="kw">_</span><span class="op">|</span> {
+        <span class="ident">location</span>,
+        <span class="op">|</span><span class="ident">_surface</span>, <span class="ident">states</span>, <span class="ident">location</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">location</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">location</span>;
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">data</span>) <span class="op">=</span> <span class="ident">states</span>.<span class="ident">data_map</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">SurfaceState</span><span class="op">&gt;</span><span class="op">&gt;</span>() {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data_ref</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">borrow_mut</span>();
                 <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">data_ref</span>;
-                <span class="kw">let</span> <span class="ident">attributes</span> <span class="op">=</span> <span class="ident">states</span>.<span class="ident">cached_state</span>.<span class="ident">current</span>::<span class="op">&lt;</span><span class="ident">SurfaceAttributes</span><span class="op">&gt;</span>();
-                <span class="comment">// Import a new buffer if available</span>
-                <span class="kw">let</span> <span class="ident">surface_size</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">surface_size</span>();
+                <span class="comment">// Import a new buffer if necessary</span>
+                <span class="kw">let</span> <span class="ident">last_commit</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">renderer_seen</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">texture_id</span>);
+                <span class="kw">let</span> <span class="ident">buffer_damage</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">damage_since</span>(<span class="ident">last_commit</span>.<span class="ident">copied</span>());
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Entry::Vacant</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">data</span>.<span class="ident">textures</span>.<span class="ident">entry</span>(<span class="ident">texture_id</span>) {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">buffer</span>) <span class="op">=</span> <span class="ident">data</span>.<span class="ident">buffer</span>.<span class="ident">as_ref</span>() {
-                        <span class="kw">let</span> <span class="ident">surface_size</span> <span class="op">=</span> <span class="ident">surface_size</span>.<span class="ident">unwrap</span>();
-                        <span class="kw">let</span> <span class="ident">buffer_damage</span> <span class="op">=</span> <span class="ident">attributes</span>
-                            .<span class="ident">damage</span>
-                            .<span class="ident">iter</span>()
-                            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">dmg</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">dmg</span> {
-                                <span class="ident">Damage::Buffer</span>(<span class="ident">rect</span>) =&gt; <span class="kw-2">*</span><span class="ident">rect</span>,
-                                <span class="ident">Damage::Surface</span>(<span class="ident">rect</span>) =&gt; <span class="ident">rect</span>.<span class="ident">to_buffer</span>(
-                                    <span class="ident">attributes</span>.<span class="ident">buffer_scale</span>,
-                                    <span class="ident">attributes</span>.<span class="ident">buffer_transform</span>.<span class="ident">into</span>(),
-                                    <span class="kw-2">&amp;</span><span class="ident">surface_size</span>,
-                                ),
-                            })
-                            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-
                         <span class="kw">match</span> <span class="ident">renderer</span>.<span class="ident">import_buffer</span>(<span class="ident">buffer</span>, <span class="prelude-val">Some</span>(<span class="ident">states</span>), <span class="kw-2">&amp;</span><span class="ident">buffer_damage</span>) {
                             <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">m</span>)) =&gt; {
                                 <span class="ident">e</span>.<span class="ident">insert</span>(<span class="ident">Box::new</span>(<span class="ident">m</span>));
+                                <span class="ident">data</span>.<span class="ident">renderer_seen</span>.<span class="ident">insert</span>(<span class="ident">texture_id</span>, <span class="ident">data</span>.<span class="ident">commit_count</span>);
                             }
                             <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)) =&gt; {
                                 <span class="macro">slog::warn!</span>(<span class="ident">log</span>, <span class="string">&quot;Error loading buffer: {}&quot;</span>, <span class="ident">err</span>);
@@ -482,9 +558,14 @@
                         }
                     }
                 }
-                <span class="comment">// Now, was the import successful?</span>
+                <span class="comment">// Now, should we be drawn ?</span>
                 <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">textures</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">texture_id</span>) {
-                    <span class="ident">TraversalAction::DoChildren</span>(())
+                    <span class="comment">// if yes, also process the children</span>
+                    <span class="kw">if</span> <span class="ident">states</span>.<span class="ident">role</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">&quot;subsurface&quot;</span>) {
+                        <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="ident">states</span>.<span class="ident">cached_state</span>.<span class="ident">current</span>::<span class="op">&lt;</span><span class="ident">SubsurfaceCachedState</span><span class="op">&gt;</span>();
+                        <span class="ident">location</span> <span class="op">+</span><span class="op">=</span> <span class="ident">current</span>.<span class="ident">location</span>;
+                    }
+                    <span class="ident">TraversalAction::DoChildren</span>(<span class="ident">location</span>)
                 } <span class="kw">else</span> {
                     <span class="comment">// we are not displayed, so our children are neither</span>
                     <span class="ident">TraversalAction::SkipChildren</span>
@@ -494,10 +575,9 @@
                 <span class="ident">TraversalAction::SkipChildren</span>
             }
         },
-        <span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> {},
+        <span class="ident">processor</span>,
         <span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> <span class="bool-val">true</span>,
     );
-
     <span class="ident">result</span>
 }
 
@@ -523,120 +603,60 @@
     <span class="ident">R</span>: <span class="ident">Renderer</span> <span class="op">+</span> <span class="ident">ImportAll</span>,
     <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">Renderer</span><span class="op">&gt;</span><span class="ident">::TextureId</span>: <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="prelude-val">Ok</span>(());
     <span class="kw">let</span> <span class="ident">texture_id</span> <span class="op">=</span> (<span class="ident">TypeId::of</span>::<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">Renderer</span><span class="op">&gt;</span><span class="ident">::TextureId</span><span class="op">&gt;</span>(), <span class="ident">renderer</span>.<span class="ident">id</span>());
-    <span class="ident">with_surface_tree_upward</span>(
-        <span class="ident">surface</span>,
-        <span class="ident">location</span>,
-        <span class="op">|</span><span class="ident">_surface</span>, <span class="ident">states</span>, <span class="ident">location</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">location</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">location</span>;
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">data</span>) <span class="op">=</span> <span class="ident">states</span>.<span class="ident">data_map</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">SurfaceState</span><span class="op">&gt;</span><span class="op">&gt;</span>() {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data_ref</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">borrow_mut</span>();
-                <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">data_ref</span>;
-                <span class="kw">let</span> <span class="ident">attributes</span> <span class="op">=</span> <span class="ident">states</span>.<span class="ident">cached_state</span>.<span class="ident">current</span>::<span class="op">&lt;</span><span class="ident">SurfaceAttributes</span><span class="op">&gt;</span>();
-                <span class="comment">// Import a new buffer if necessary</span>
-                <span class="kw">let</span> <span class="ident">surface_size</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">surface_size</span>();
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Entry::Vacant</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">data</span>.<span class="ident">textures</span>.<span class="ident">entry</span>(<span class="ident">texture_id</span>) {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">buffer</span>) <span class="op">=</span> <span class="ident">data</span>.<span class="ident">buffer</span>.<span class="ident">as_ref</span>() {
-                        <span class="kw">let</span> <span class="ident">surface_size</span> <span class="op">=</span> <span class="ident">surface_size</span>.<span class="ident">unwrap</span>();
-                        <span class="kw">let</span> <span class="ident">buffer_damage</span> <span class="op">=</span> <span class="ident">attributes</span>
-                            .<span class="ident">damage</span>
-                            .<span class="ident">iter</span>()
-                            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">dmg</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">dmg</span> {
-                                <span class="ident">Damage::Buffer</span>(<span class="ident">rect</span>) =&gt; <span class="kw-2">*</span><span class="ident">rect</span>,
-                                <span class="ident">Damage::Surface</span>(<span class="ident">rect</span>) =&gt; <span class="ident">rect</span>.<span class="ident">to_buffer</span>(
-                                    <span class="ident">attributes</span>.<span class="ident">buffer_scale</span>,
-                                    <span class="ident">attributes</span>.<span class="ident">buffer_transform</span>.<span class="ident">into</span>(),
-                                    <span class="kw-2">&amp;</span><span class="ident">surface_size</span>,
-                                ),
-                            })
-                            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-
-                        <span class="kw">match</span> <span class="ident">renderer</span>.<span class="ident">import_buffer</span>(<span class="ident">buffer</span>, <span class="prelude-val">Some</span>(<span class="ident">states</span>), <span class="kw-2">&amp;</span><span class="ident">buffer_damage</span>) {
-                            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">m</span>)) =&gt; {
-                                <span class="ident">e</span>.<span class="ident">insert</span>(<span class="ident">Box::new</span>(<span class="ident">m</span>));
-                            }
-                            <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>)) =&gt; {
-                                <span class="macro">slog::warn!</span>(<span class="ident">log</span>, <span class="string">&quot;Error loading buffer: {}&quot;</span>, <span class="ident">err</span>);
-                            }
-                            <span class="prelude-val">None</span> =&gt; {
-                                <span class="macro">slog::error!</span>(<span class="ident">log</span>, <span class="string">&quot;Unknown buffer format for: {:?}&quot;</span>, <span class="ident">buffer</span>);
-                            }
-                        }
-                    }
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="prelude-val">Ok</span>(());
+    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">import_surface_tree_and</span>(<span class="ident">renderer</span>, <span class="ident">surface</span>, <span class="ident">log</span>, <span class="ident">location</span>, <span class="op">|</span><span class="ident">_surface</span>, <span class="ident">states</span>, <span class="ident">location</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">location</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">location</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">data</span>) <span class="op">=</span> <span class="ident">states</span>.<span class="ident">data_map</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">SurfaceState</span><span class="op">&gt;</span><span class="op">&gt;</span>() {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">borrow_mut</span>();
+            <span class="kw">let</span> <span class="ident">dimensions</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">surface_size</span>();
+            <span class="kw">let</span> <span class="ident">buffer_scale</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">buffer_scale</span>;
+            <span class="kw">let</span> <span class="ident">attributes</span> <span class="op">=</span> <span class="ident">states</span>.<span class="ident">cached_state</span>.<span class="ident">current</span>::<span class="op">&lt;</span><span class="ident">SurfaceAttributes</span><span class="op">&gt;</span>();
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">texture</span>) <span class="op">=</span> <span class="ident">data</span>
+                .<span class="ident">textures</span>
+                .<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">texture_id</span>)
+                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">Renderer</span><span class="op">&gt;</span><span class="ident">::TextureId</span><span class="op">&gt;</span>())
+            {
+                <span class="kw">let</span> <span class="ident">dimensions</span> <span class="op">=</span> <span class="ident">dimensions</span>.<span class="ident">unwrap</span>();
+                <span class="comment">// we need to re-extract the subsurface offset, as the previous closure</span>
+                <span class="comment">// only passes it to our children</span>
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">surface_offset</span> <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>).<span class="ident">into</span>();
+                <span class="kw">if</span> <span class="ident">states</span>.<span class="ident">role</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">&quot;subsurface&quot;</span>) {
+                    <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="ident">states</span>.<span class="ident">cached_state</span>.<span class="ident">current</span>::<span class="op">&lt;</span><span class="ident">SubsurfaceCachedState</span><span class="op">&gt;</span>();
+                    <span class="ident">surface_offset</span> <span class="op">=</span> <span class="ident">current</span>.<span class="ident">location</span>;
+                    <span class="ident">location</span> <span class="op">+</span><span class="op">=</span> <span class="ident">current</span>.<span class="ident">location</span>;
                 }
-                <span class="comment">// Now, should we be drawn ?</span>
-                <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">textures</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">texture_id</span>) {
-                    <span class="comment">// if yes, also process the children</span>
-                    <span class="kw">if</span> <span class="ident">states</span>.<span class="ident">role</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">&quot;subsurface&quot;</span>) {
-                        <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="ident">states</span>.<span class="ident">cached_state</span>.<span class="ident">current</span>::<span class="op">&lt;</span><span class="ident">SubsurfaceCachedState</span><span class="op">&gt;</span>();
-                        <span class="ident">location</span> <span class="op">+</span><span class="op">=</span> <span class="ident">current</span>.<span class="ident">location</span>;
-                    }
-                    <span class="ident">TraversalAction::DoChildren</span>(<span class="ident">location</span>)
-                } <span class="kw">else</span> {
-                    <span class="comment">// we are not displayed, so our children are neither</span>
-                    <span class="ident">TraversalAction::SkipChildren</span>
-                }
-            } <span class="kw">else</span> {
-                <span class="comment">// we are not displayed, so our children are neither</span>
-                <span class="ident">TraversalAction::SkipChildren</span>
-            }
-        },
-        <span class="op">|</span><span class="ident">_surface</span>, <span class="ident">states</span>, <span class="ident">location</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">location</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">location</span>;
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">data</span>) <span class="op">=</span> <span class="ident">states</span>.<span class="ident">data_map</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">SurfaceState</span><span class="op">&gt;</span><span class="op">&gt;</span>() {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">borrow_mut</span>();
-                <span class="kw">let</span> <span class="ident">dimensions</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">surface_size</span>();
-                <span class="kw">let</span> <span class="ident">buffer_scale</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">buffer_scale</span>;
-                <span class="kw">let</span> <span class="ident">attributes</span> <span class="op">=</span> <span class="ident">states</span>.<span class="ident">cached_state</span>.<span class="ident">current</span>::<span class="op">&lt;</span><span class="ident">SurfaceAttributes</span><span class="op">&gt;</span>();
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">texture</span>) <span class="op">=</span> <span class="ident">data</span>
-                    .<span class="ident">textures</span>
-                    .<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">texture_id</span>)
-                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">Renderer</span><span class="op">&gt;</span><span class="ident">::TextureId</span><span class="op">&gt;</span>())
-                {
-                    <span class="kw">let</span> <span class="ident">dimensions</span> <span class="op">=</span> <span class="ident">dimensions</span>.<span class="ident">unwrap</span>();
-                    <span class="comment">// we need to re-extract the subsurface offset, as the previous closure</span>
-                    <span class="comment">// only passes it to our children</span>
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">surface_offset</span> <span class="op">=</span> (<span class="number">0</span>, <span class="number">0</span>).<span class="ident">into</span>();
-                    <span class="kw">if</span> <span class="ident">states</span>.<span class="ident">role</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">&quot;subsurface&quot;</span>) {
-                        <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="ident">states</span>.<span class="ident">cached_state</span>.<span class="ident">current</span>::<span class="op">&lt;</span><span class="ident">SubsurfaceCachedState</span><span class="op">&gt;</span>();
-                        <span class="ident">surface_offset</span> <span class="op">=</span> <span class="ident">current</span>.<span class="ident">location</span>;
-                        <span class="ident">location</span> <span class="op">+</span><span class="op">=</span> <span class="ident">current</span>.<span class="ident">location</span>;
-                    }
 
-                    <span class="kw">let</span> <span class="ident">damage</span> <span class="op">=</span> <span class="ident">damage</span>
-                        .<span class="ident">iter</span>()
-                        .<span class="ident">cloned</span>()
-                        <span class="comment">// first move the damage by the surface offset in logical space</span>
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">geo</span><span class="op">|</span> {
-                            <span class="comment">// make the damage relative to the surfaec</span>
-                            <span class="ident">geo</span>.<span class="ident">loc</span> <span class="op">-</span><span class="op">=</span> <span class="ident">surface_offset</span>;
-                            <span class="ident">geo</span>
-                        })
-                        <span class="comment">// then clamp to surface size again in logical space</span>
-                        .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">geo</span><span class="op">|</span> <span class="ident">geo</span>.<span class="ident">intersection</span>(<span class="ident">Rectangle::from_loc_and_size</span>((<span class="number">0</span>, <span class="number">0</span>), <span class="ident">dimensions</span>)))
-                        <span class="comment">// lastly transform it into physical space</span>
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">geo</span><span class="op">|</span> <span class="ident">geo</span>.<span class="ident">to_f64</span>().<span class="ident">to_physical</span>(<span class="ident">scale</span>))
-                        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+                <span class="kw">let</span> <span class="ident">damage</span> <span class="op">=</span> <span class="ident">damage</span>
+                    .<span class="ident">iter</span>()
+                    .<span class="ident">cloned</span>()
+                    <span class="comment">// first move the damage by the surface offset in logical space</span>
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">geo</span><span class="op">|</span> {
+                        <span class="comment">// make the damage relative to the surfaec</span>
+                        <span class="ident">geo</span>.<span class="ident">loc</span> <span class="op">-</span><span class="op">=</span> <span class="ident">surface_offset</span>;
+                        <span class="ident">geo</span>
+                    })
+                    <span class="comment">// then clamp to surface size again in logical space</span>
+                    .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">geo</span><span class="op">|</span> <span class="ident">geo</span>.<span class="ident">intersection</span>(<span class="ident">Rectangle::from_loc_and_size</span>((<span class="number">0</span>, <span class="number">0</span>), <span class="ident">dimensions</span>)))
+                    <span class="comment">// lastly transform it into physical space</span>
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">geo</span><span class="op">|</span> <span class="ident">geo</span>.<span class="ident">to_f64</span>().<span class="ident">to_physical</span>(<span class="ident">scale</span>))
+                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
-                    <span class="comment">// TODO: Take wp_viewporter into account</span>
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">render_texture_at</span>(
-                        <span class="ident">texture</span>,
-                        <span class="ident">location</span>.<span class="ident">to_f64</span>().<span class="ident">to_physical</span>(<span class="ident">scale</span>),
-                        <span class="ident">buffer_scale</span>,
-                        <span class="ident">scale</span>,
-                        <span class="ident">attributes</span>.<span class="ident">buffer_transform</span>.<span class="ident">into</span>(),
-                        <span class="kw-2">&amp;</span><span class="ident">damage</span>,
-                        <span class="number">1.0</span>,
-                    ) {
-                        <span class="ident">result</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>);
-                    }
+                <span class="comment">// TODO: Take wp_viewporter into account</span>
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">render_texture_at</span>(
+                    <span class="ident">texture</span>,
+                    <span class="ident">location</span>.<span class="ident">to_f64</span>().<span class="ident">to_physical</span>(<span class="ident">scale</span>),
+                    <span class="ident">buffer_scale</span>,
+                    <span class="ident">scale</span>,
+                    <span class="ident">attributes</span>.<span class="ident">buffer_transform</span>.<span class="ident">into</span>(),
+                    <span class="kw-2">&amp;</span><span class="ident">damage</span>,
+                    <span class="number">1.0</span>,
+                ) {
+                    <span class="ident">result</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>);
                 }
             }
-        },
-        <span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> <span class="bool-val">true</span>,
-    );
-
+        }
+    });
     <span class="ident">result</span>
 }
 </code></pre></div>

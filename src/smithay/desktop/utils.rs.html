@@ -331,6 +331,14 @@
 <span id="326">326</span>
 <span id="327">327</span>
 <span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Helper functions to ease dealing with surface trees</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -339,8 +347,8 @@
     <span class="ident">utils</span>::{<span class="ident">Logical</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>},
     <span class="ident">wayland</span>::{
         <span class="ident">compositor</span>::{
-            <span class="ident">with_surface_tree_downward</span>, <span class="ident">with_surface_tree_upward</span>, <span class="ident">Damage</span>, <span class="ident">SubsurfaceCachedState</span>,
-            <span class="ident">SurfaceAttributes</span>, <span class="ident">TraversalAction</span>,
+            <span class="ident">with_surface_tree_downward</span>, <span class="ident">with_surface_tree_upward</span>, <span class="ident">SubsurfaceCachedState</span>, <span class="ident">SurfaceAttributes</span>,
+            <span class="ident">TraversalAction</span>,
         },
         <span class="ident">output::Output</span>,
     },
@@ -427,7 +435,8 @@
 <span class="doccomment">/// - `location` can be set to offset the returned bounding box.</span>
 <span class="doccomment">/// - if a `key` is set the damage is only returned on the first call with the given key values.</span>
 <span class="doccomment">///   Subsequent calls will return an empty vector until the buffer is updated again and new</span>
-<span class="doccomment">///   damage values may be retrieved.</span>
+<span class="doccomment">///   damage values may be retrieved. Additionally damage may be internally accumulated, if</span>
+<span class="doccomment">///   multiple commits occurred between different calls.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">damage_from_surface_tree</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(
     <span class="ident">surface</span>: <span class="kw-2">&amp;</span><span class="ident">wl_surface::WlSurface</span>,
     <span class="ident">location</span>: <span class="ident">P</span>,
@@ -449,7 +458,7 @@
                 <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">borrow</span>();
                 <span class="kw">if</span> <span class="ident">key</span>
                     .<span class="ident">as_ref</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> <span class="op">!</span><span class="ident">data</span>.<span class="ident">damage_seen</span>.<span class="ident">contains</span>(<span class="ident">key</span>))
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> <span class="ident">data</span>.<span class="ident">space_seen</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">copied</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>) <span class="op">&lt;</span> <span class="ident">data</span>.<span class="ident">commit_count</span>)
                     .<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>)
                     <span class="op">&amp;&amp;</span> <span class="ident">states</span>.<span class="ident">role</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">&quot;subsurface&quot;</span>)
                 {
@@ -463,33 +472,40 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">location</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">location</span>;
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">data</span>) <span class="op">=</span> <span class="ident">states</span>.<span class="ident">data_map</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">SurfaceState</span><span class="op">&gt;</span><span class="op">&gt;</span>() {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">borrow_mut</span>();
-                <span class="kw">let</span> <span class="ident">attributes</span> <span class="op">=</span> <span class="ident">states</span>.<span class="ident">cached_state</span>.<span class="ident">current</span>::<span class="op">&lt;</span><span class="ident">SurfaceAttributes</span><span class="op">&gt;</span>();
-
                 <span class="kw">if</span> <span class="ident">key</span>
                     .<span class="ident">as_ref</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> <span class="op">!</span><span class="ident">data</span>.<span class="ident">damage_seen</span>.<span class="ident">contains</span>(<span class="ident">key</span>))
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> <span class="ident">data</span>.<span class="ident">space_seen</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">copied</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>) <span class="op">&lt;</span> <span class="ident">data</span>.<span class="ident">commit_count</span>)
                     .<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>)
                 {
                     <span class="kw">if</span> <span class="ident">states</span>.<span class="ident">role</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="string">&quot;subsurface&quot;</span>) {
                         <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="ident">states</span>.<span class="ident">cached_state</span>.<span class="ident">current</span>::<span class="op">&lt;</span><span class="ident">SubsurfaceCachedState</span><span class="op">&gt;</span>();
                         <span class="ident">location</span> <span class="op">+</span><span class="op">=</span> <span class="ident">current</span>.<span class="ident">location</span>;
                     }
+                    <span class="kw">let</span> <span class="ident">new_damage</span> <span class="op">=</span> <span class="ident">key</span>
+                        .<span class="ident">as_ref</span>()
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> <span class="ident">data</span>.<span class="ident">damage_since</span>(<span class="ident">data</span>.<span class="ident">space_seen</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">copied</span>()))
+                        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                            <span class="ident">data</span>.<span class="ident">damage</span>.<span class="ident">front</span>().<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                                <span class="ident">data</span>.<span class="ident">buffer_dimensions</span>
+                                    .<span class="ident">as_ref</span>()
+                                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">size</span><span class="op">|</span> <span class="macro">vec!</span>[<span class="ident">Rectangle::from_loc_and_size</span>((<span class="number">0</span>, <span class="number">0</span>), <span class="kw-2">*</span><span class="ident">size</span>)])
+                                    .<span class="ident">unwrap_or_else</span>(<span class="ident">Vec::new</span>)
+                            })
+                        });
 
-                    <span class="ident">damage</span>.<span class="ident">extend</span>(<span class="ident">attributes</span>.<span class="ident">damage</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">dmg</span><span class="op">|</span> {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rect</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">dmg</span> {
-                            <span class="ident">Damage::Buffer</span>(<span class="ident">rect</span>) =&gt; <span class="ident">rect</span>.<span class="ident">to_logical</span>(
-                                <span class="ident">attributes</span>.<span class="ident">buffer_scale</span>,
-                                <span class="ident">attributes</span>.<span class="ident">buffer_transform</span>.<span class="ident">into</span>(),
-                                <span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">buffer_dimensions</span>.<span class="ident">unwrap</span>(),
-                            ),
-                            <span class="ident">Damage::Surface</span>(<span class="ident">rect</span>) =&gt; <span class="kw-2">*</span><span class="ident">rect</span>,
-                        };
+                    <span class="ident">damage</span>.<span class="ident">extend</span>(<span class="ident">new_damage</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">rect</span><span class="op">|</span> {
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rect</span> <span class="op">=</span> <span class="ident">rect</span>.<span class="ident">to_logical</span>(
+                            <span class="ident">data</span>.<span class="ident">buffer_scale</span>,
+                            <span class="ident">data</span>.<span class="ident">buffer_transform</span>,
+                            <span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">buffer_dimensions</span>.<span class="ident">unwrap</span>(),
+                        );
                         <span class="ident">rect</span>.<span class="ident">loc</span> <span class="op">+</span><span class="op">=</span> <span class="ident">location</span>;
                         <span class="ident">rect</span>
                     }));
 
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">key</span>) <span class="op">=</span> <span class="ident">key</span> {
-                        <span class="ident">data</span>.<span class="ident">damage_seen</span>.<span class="ident">insert</span>(<span class="ident">key</span>);
+                        <span class="kw">let</span> <span class="ident">current_commit</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">commit_count</span>;
+                        <span class="ident">data</span>.<span class="ident">space_seen</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">current_commit</span>);
                     }
                 }
             }
