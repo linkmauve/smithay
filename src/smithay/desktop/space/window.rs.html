@@ -214,9 +214,9 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">elem_z_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u8</span> {
-        <span class="ident">RenderZindex::Shell</span> <span class="kw">as</span> <span class="ident">u8</span>
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">z_index</span>.<span class="ident">get</span>().<span class="ident">unwrap_or</span>(<span class="ident">RenderZindex::Shell</span> <span class="kw">as</span> <span class="ident">u8</span>)
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (ee915c34e 2022-03-28)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (c5cf08d37 2022-03-30)" ></div>
 </body></html>

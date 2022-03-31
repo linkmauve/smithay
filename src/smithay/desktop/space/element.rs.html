@@ -270,6 +270,12 @@
 <span id="265">265</span>
 <span id="266">266</span>
 <span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::desktop::space::popup::RenderPopup</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">backend::renderer</span>::{<span class="ident">ImportAll</span>, <span class="ident">Renderer</span>, <span class="ident">Texture</span>},
@@ -462,6 +468,8 @@
     <span class="kw">pub</span> <span class="ident">surface</span>: <span class="ident">WlSurface</span>,
     <span class="doccomment">/// Position to draw add</span>
     <span class="kw">pub</span> <span class="ident">position</span>: <span class="ident">Point</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Logical</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Z-Index to draw at</span>
+    <span class="kw">pub</span> <span class="ident">z_index</span>: <span class="ident">u8</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">RenderElement</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SurfaceTree</span>
@@ -505,6 +513,10 @@
             <span class="ident">log</span>,
         )
     }
+
+    <span class="kw">fn</span> <span class="ident">z_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u8</span> {
+        <span class="self">self</span>.<span class="ident">z_index</span>
+    }
 }
 
 <span class="doccomment">/// Newtype for (&amp;Space, &amp;Output) to provide a `Hash` implementation for damage tracking</span>
@@ -538,5 +550,5 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SpaceOutputHash</span>(<span class="ident">usize</span>, <span class="ident">usize</span>);
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (ee915c34e 2022-03-28)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (c5cf08d37 2022-03-30)" ></div>
 </body></html>
