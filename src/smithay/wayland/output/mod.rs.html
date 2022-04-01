@@ -424,6 +424,16 @@
 <span id="419">419</span>
 <span id="420">420</span>
 <span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Output advertising capabilities</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module provides a type helping you to handle the advertising</span>
@@ -513,7 +523,7 @@
 }
 
 <span class="doccomment">/// The physical properties of an output</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PhysicalProperties</span> {
     <span class="doccomment">/// The size of the monitor, in millimeters</span>
     <span class="kw">pub</span> <span class="ident">size</span>: <span class="ident">Size</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Raw</span><span class="op">&gt;</span>,
@@ -705,9 +715,19 @@
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="number">0</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">scale</span>
     }
 
+    <span class="doccomment">/// Returns the currenly advertised location of the output</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Point</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Logical</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="number">0</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">location</span>
+    }
+
     <span class="doccomment">/// Returns the name of the output</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="number">0</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">name</span>.<span class="ident">clone</span>()
+    }
+
+    <span class="doccomment">/// Returns the physical properties of the output</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">physical_properties</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">PhysicalProperties</span> {
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="number">0</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">physical</span>.<span class="ident">clone</span>()
     }
 
     <span class="doccomment">/// Removes a mode from the list of known modes</span>
@@ -846,5 +866,5 @@
 
 <span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">Output</span> {}
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (c5cf08d37 2022-03-30)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (0677edc86 2022-03-31)" ></div>
 </body></html>
