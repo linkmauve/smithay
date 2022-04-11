@@ -258,7 +258,7 @@
                                     <span class="ident">wl_surface</span>: <span class="ident">data</span>.<span class="ident">wl_surface</span>.<span class="ident">clone</span>(),
                                 };
 
-                                (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">cb</span>.<span class="ident">borrow_mut</span>())(
+                                (<span class="kw-2">*</span><span class="ident">cb</span>.<span class="ident">borrow_mut</span>())(
                                     <span class="ident">XdgDecorationRequest::NewToplevelDecoration</span> {
                                         <span class="ident">toplevel</span>: <span class="ident">toplevel</span>.<span class="ident">clone</span>(),
                                     },
@@ -268,7 +268,7 @@
                                 <span class="kw">let</span> <span class="ident">cb</span> <span class="op">=</span> <span class="ident">cb</span>.<span class="ident">clone</span>();
                                 <span class="ident">id</span>.<span class="ident">quick_assign</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">request</span>, <span class="ident">ddata</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">request</span> {
                                     <span class="ident">zxdg_toplevel_decoration_v1::Request::SetMode</span> { <span class="ident">mode</span> } =&gt; {
-                                        (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">cb</span>.<span class="ident">borrow_mut</span>())(
+                                        (<span class="kw-2">*</span><span class="ident">cb</span>.<span class="ident">borrow_mut</span>())(
                                             <span class="ident">XdgDecorationRequest::SetMode</span> {
                                                 <span class="ident">toplevel</span>: <span class="ident">toplevel</span>.<span class="ident">clone</span>(),
                                                 <span class="ident">mode</span>,
@@ -277,7 +277,7 @@
                                         );
                                     }
                                     <span class="ident">zxdg_toplevel_decoration_v1::Request::UnsetMode</span> =&gt; {
-                                        (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">cb</span>.<span class="ident">borrow_mut</span>())(
+                                        (<span class="kw-2">*</span><span class="ident">cb</span>.<span class="ident">borrow_mut</span>())(
                                             <span class="ident">XdgDecorationRequest::UnsetMode</span> {
                                                 <span class="ident">toplevel</span>: <span class="ident">toplevel</span>.<span class="ident">clone</span>(),
                                             },
@@ -310,5 +310,5 @@
     <span class="ident">id</span>.<span class="ident">configure</span>(<span class="ident">mode</span>)
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (60e50fc1c 2022-04-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (1f7fb6413 2022-04-10)" ></div>
 </body></html>

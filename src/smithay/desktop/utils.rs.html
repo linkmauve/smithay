@@ -339,6 +339,8 @@
 <span id="334">334</span>
 <span id="335">335</span>
 <span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Helper functions to ease dealing with surface trees</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -515,7 +517,9 @@
     <span class="ident">damage</span>
 }
 
-<span class="doccomment">/// Returns the (sub-)surface under a given position given a surface, if any.</span>
+<span class="doccomment">/// Returns the topmost (sub-)surface under a given position matching the input regions of the surface.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// In case no surface input region matches the point [`None`] is returned.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// - `point` has to be the position to query, relative to (0, 0) of the given surface + `location`.</span>
 <span class="doccomment">/// - `location` can be used to offset the returned point.</span>
@@ -676,5 +680,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (60e50fc1c 2022-04-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (1f7fb6413 2022-04-10)" ></div>
 </body></html>

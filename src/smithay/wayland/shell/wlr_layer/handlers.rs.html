@@ -423,7 +423,7 @@
             <span class="ident">data</span>.<span class="ident">shell_state</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">known_layers</span>.<span class="ident">push</span>(<span class="ident">handle</span>.<span class="ident">clone</span>());
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_impl</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">user_impl</span>.<span class="ident">borrow_mut</span>();
-            (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">user_impl</span>)(
+            (<span class="kw-2">*</span><span class="ident">user_impl</span>)(
                 <span class="ident">LayerShellRequest::NewLayerSurface</span> {
                     <span class="ident">surface</span>: <span class="ident">handle</span>,
                     <span class="ident">output</span>,
@@ -568,7 +568,7 @@
             };
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_impl</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">shell_data</span>.<span class="ident">user_impl</span>.<span class="ident">borrow_mut</span>();
-            (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">user_impl</span>)(
+            (<span class="kw-2">*</span><span class="ident">user_impl</span>)(
                 <span class="ident">LayerShellRequest::AckConfigure</span> {
                     <span class="ident">surface</span>: <span class="ident">data</span>.<span class="ident">wl_surface</span>.<span class="ident">clone</span>(),
                     <span class="ident">configure</span>,
@@ -600,5 +600,5 @@
     .<span class="ident">unwrap</span>()
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (60e50fc1c 2022-04-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (1f7fb6413 2022-04-10)" ></div>
 </body></html>

@@ -994,6 +994,11 @@
 <span id="989">989</span>
 <span id="990">990</span>
 <span id="991">991</span>
+<span id="992">992</span>
+<span id="993">993</span>
+<span id="994">994</span>
+<span id="995">995</span>
+<span id="996">996</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Type safe native types for safe egl initialisation</span>
 
 <span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
@@ -1406,6 +1411,7 @@
     }
 
     <span class="doccomment">/// Exports an [`EGLImage`] as a [`Dmabuf`]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::not_unsafe_ptr_arg_deref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_dmabuf_from_image</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">image</span>: <span class="ident">EGLImage</span>,
@@ -1431,6 +1437,8 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">num_planes</span>: <span class="ident">nix::libc::c_int</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">modifier</span>: <span class="ident">ffi::egl::types::EGLuint64KHR</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">if</span> <span class="kw">unsafe</span> {
+            <span class="comment">// TODO: clippy warns us here that we might dereference a raw pointer in a non unsafe public function</span>
+            <span class="comment">// For now we add a allow rule, but this should be addressed in the future</span>
             <span class="ident">ffi::egl::ExportDMABUFImageQueryMESA</span>(
                 <span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">display</span>,
                 <span class="ident">image</span>,
@@ -1446,6 +1454,8 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">strides</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ffi::egl::types::EGLint</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">num_planes</span> <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offsets</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ffi::egl::types::EGLint</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">num_planes</span> <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="kw">unsafe</span> {
+            <span class="comment">// TODO: clippy warns us here that we might dereference a raw pointer in a non unsafe public function</span>
+            <span class="comment">// For now we add a allow rule, but this should be addressed in the future</span>
             <span class="kw">if</span> <span class="ident">ffi::egl::ExportDMABUFImageMESA</span>(
                 <span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">display</span>,
                 <span class="ident">image</span>,
@@ -1986,5 +1996,5 @@
     <span class="kw">pub</span> <span class="ident">srgb</span>: <span class="ident">bool</span>,
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (60e50fc1c 2022-04-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (1f7fb6413 2022-04-10)" ></div>
 </body></html>

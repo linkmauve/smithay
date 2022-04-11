@@ -530,9 +530,6 @@
 <span id="525">525</span>
 <span id="526">526</span>
 <span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Utilities for manipulating the data devices</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The data device is wayland&#39;s abstraction to represent both selection (copy/paste) and</span>
@@ -763,10 +760,7 @@
                                 <span class="macro">debug!</span>(<span class="ident">log</span>, <span class="string">&quot;Denying a wl_data_offer.receive with invalid source.&quot;</span>);
                                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">::nix::unistd::close</span>(<span class="ident">fd</span>);
                             } <span class="kw">else</span> {
-                                (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">callback</span>.<span class="ident">borrow_mut</span>())(<span class="ident">DataDeviceEvent::SendSelection</span> {
-                                    <span class="ident">mime_type</span>,
-                                    <span class="ident">fd</span>,
-                                });
+                                (<span class="kw-2">*</span><span class="ident">callback</span>.<span class="ident">borrow_mut</span>())(<span class="ident">DataDeviceEvent::SendSelection</span> { <span class="ident">mime_type</span>, <span class="ident">fd</span> });
                             }
                         }
                     });
@@ -983,7 +977,7 @@
                         }
                     }
                     <span class="comment">// The StartDrag is in response to a pointer implicit grab, all is good</span>
-                    (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">callback</span>.<span class="ident">borrow_mut</span>())(<span class="ident">DataDeviceEvent::DnDStarted</span> {
+                    (<span class="kw-2">*</span><span class="ident">callback</span>.<span class="ident">borrow_mut</span>())(<span class="ident">DataDeviceEvent::DnDStarted</span> {
                         <span class="ident">source</span>: <span class="ident">source</span>.<span class="ident">clone</span>(),
                         <span class="ident">icon</span>: <span class="ident">icon</span>.<span class="ident">clone</span>(),
                         <span class="ident">seat</span>: <span class="ident">seat</span>.<span class="ident">clone</span>(),
@@ -1016,7 +1010,7 @@
                     .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
                 {
                     <span class="kw">let</span> <span class="ident">seat_data</span> <span class="op">=</span> <span class="ident">seat</span>.<span class="ident">user_data</span>().<span class="ident">get</span>::<span class="op">&lt;</span><span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">SeatData</span><span class="op">&gt;</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>();
-                    (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">callback</span>.<span class="ident">borrow_mut</span>())(<span class="ident">DataDeviceEvent::NewSelection</span>(<span class="ident">source</span>.<span class="ident">clone</span>()));
+                    (<span class="kw-2">*</span><span class="ident">callback</span>.<span class="ident">borrow_mut</span>())(<span class="ident">DataDeviceEvent::NewSelection</span>(<span class="ident">source</span>.<span class="ident">clone</span>()));
                     <span class="comment">// The client has kbd focus, it can set the selection</span>
                     <span class="ident">seat_data</span>
                         .<span class="ident">borrow_mut</span>()
@@ -1064,5 +1058,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (60e50fc1c 2022-04-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (1f7fb6413 2022-04-10)" ></div>
 </body></html>

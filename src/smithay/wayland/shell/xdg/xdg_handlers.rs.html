@@ -857,7 +857,7 @@
         <span class="ident">client_data</span>: <span class="ident">Mutex::new</span>(<span class="ident">make_shell_client_data</span>()),
     });
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_impl</span> <span class="op">=</span> <span class="ident">shell_data</span>.<span class="ident">user_impl</span>.<span class="ident">borrow_mut</span>();
-    (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">user_impl</span>)(
+    (<span class="kw-2">*</span><span class="ident">user_impl</span>)(
         <span class="ident">XdgRequest::NewClient</span> {
             <span class="ident">client</span>: <span class="ident">make_shell_client</span>(<span class="kw-2">&amp;</span><span class="ident">shell</span>),
         },
@@ -922,7 +922,7 @@
             };
             <span class="kw">if</span> <span class="ident">valid</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_impl</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">shell_data</span>.<span class="ident">user_impl</span>.<span class="ident">borrow_mut</span>();
-                (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">user_impl</span>)(
+                (<span class="kw-2">*</span><span class="ident">user_impl</span>)(
                     <span class="ident">XdgRequest::ClientPong</span> {
                         <span class="ident">client</span>: <span class="ident">make_shell_client</span>(<span class="kw-2">&amp;</span><span class="ident">shell</span>),
                     },
@@ -1099,7 +1099,7 @@
 
             <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">make_toplevel_handle</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_impl</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">shell_data</span>.<span class="ident">user_impl</span>.<span class="ident">borrow_mut</span>();
-            (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">user_impl</span>)(<span class="ident">XdgRequest::NewToplevel</span> { <span class="ident">surface</span>: <span class="ident">handle</span> }, <span class="ident">dispatch_data</span>);
+            (<span class="kw-2">*</span><span class="ident">user_impl</span>)(<span class="ident">XdgRequest::NewToplevel</span> { <span class="ident">surface</span>: <span class="ident">handle</span> }, <span class="ident">dispatch_data</span>);
         }
         <span class="ident">xdg_surface::Request::GetPopup</span> {
             <span class="ident">id</span>,
@@ -1175,7 +1175,7 @@
 
             <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">make_popup_handle</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_impl</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">shell_data</span>.<span class="ident">user_impl</span>.<span class="ident">borrow_mut</span>();
-            (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">user_impl</span>)(
+            (<span class="kw-2">*</span><span class="ident">user_impl</span>)(
                 <span class="ident">XdgRequest::NewPopup</span> {
                     <span class="ident">surface</span>: <span class="ident">handle</span>,
                     <span class="ident">positioner</span>: <span class="ident">positioner_data</span>,
@@ -1280,7 +1280,7 @@
             };
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_impl</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">shell_data</span>.<span class="ident">user_impl</span>.<span class="ident">borrow_mut</span>();
-            (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">user_impl</span>)(
+            (<span class="kw-2">*</span><span class="ident">user_impl</span>)(
                 <span class="ident">XdgRequest::AckConfigure</span> {
                     <span class="ident">surface</span>: <span class="ident">surface</span>.<span class="ident">clone</span>(),
                     <span class="ident">configure</span>,
@@ -1427,7 +1427,7 @@
             <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">make_toplevel_handle</span>(<span class="kw-2">&amp;</span><span class="ident">toplevel</span>);
             <span class="kw">let</span> <span class="ident">serial</span> <span class="op">=</span> <span class="ident">Serial::from</span>(<span class="ident">serial</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_impl</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">shell_data</span>.<span class="ident">user_impl</span>.<span class="ident">borrow_mut</span>();
-            (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">user_impl</span>)(
+            (<span class="kw-2">*</span><span class="ident">user_impl</span>)(
                 <span class="ident">XdgRequest::ShowWindowMenu</span> {
                     <span class="ident">surface</span>: <span class="ident">handle</span>,
                     <span class="ident">seat</span>,
@@ -1442,7 +1442,7 @@
             <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">make_toplevel_handle</span>(<span class="kw-2">&amp;</span><span class="ident">toplevel</span>);
             <span class="kw">let</span> <span class="ident">serial</span> <span class="op">=</span> <span class="ident">Serial::from</span>(<span class="ident">serial</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_impl</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">shell_data</span>.<span class="ident">user_impl</span>.<span class="ident">borrow_mut</span>();
-            (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">user_impl</span>)(
+            (<span class="kw-2">*</span><span class="ident">user_impl</span>)(
                 <span class="ident">XdgRequest::Move</span> {
                     <span class="ident">surface</span>: <span class="ident">handle</span>,
                     <span class="ident">seat</span>,
@@ -1456,7 +1456,7 @@
             <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">make_toplevel_handle</span>(<span class="kw-2">&amp;</span><span class="ident">toplevel</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_impl</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">shell_data</span>.<span class="ident">user_impl</span>.<span class="ident">borrow_mut</span>();
             <span class="kw">let</span> <span class="ident">serial</span> <span class="op">=</span> <span class="ident">Serial::from</span>(<span class="ident">serial</span>);
-            (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">user_impl</span>)(
+            (<span class="kw-2">*</span><span class="ident">user_impl</span>)(
                 <span class="ident">XdgRequest::Resize</span> {
                     <span class="ident">surface</span>: <span class="ident">handle</span>,
                     <span class="ident">seat</span>,
@@ -1479,17 +1479,17 @@
         <span class="ident">xdg_toplevel::Request::SetMaximized</span> =&gt; {
             <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">make_toplevel_handle</span>(<span class="kw-2">&amp;</span><span class="ident">toplevel</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_impl</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">shell_data</span>.<span class="ident">user_impl</span>.<span class="ident">borrow_mut</span>();
-            (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">user_impl</span>)(<span class="ident">XdgRequest::Maximize</span> { <span class="ident">surface</span>: <span class="ident">handle</span> }, <span class="ident">dispatch_data</span>);
+            (<span class="kw-2">*</span><span class="ident">user_impl</span>)(<span class="ident">XdgRequest::Maximize</span> { <span class="ident">surface</span>: <span class="ident">handle</span> }, <span class="ident">dispatch_data</span>);
         }
         <span class="ident">xdg_toplevel::Request::UnsetMaximized</span> =&gt; {
             <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">make_toplevel_handle</span>(<span class="kw-2">&amp;</span><span class="ident">toplevel</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_impl</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">shell_data</span>.<span class="ident">user_impl</span>.<span class="ident">borrow_mut</span>();
-            (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">user_impl</span>)(<span class="ident">XdgRequest::UnMaximize</span> { <span class="ident">surface</span>: <span class="ident">handle</span> }, <span class="ident">dispatch_data</span>);
+            (<span class="kw-2">*</span><span class="ident">user_impl</span>)(<span class="ident">XdgRequest::UnMaximize</span> { <span class="ident">surface</span>: <span class="ident">handle</span> }, <span class="ident">dispatch_data</span>);
         }
         <span class="ident">xdg_toplevel::Request::SetFullscreen</span> { <span class="ident">output</span> } =&gt; {
             <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">make_toplevel_handle</span>(<span class="kw-2">&amp;</span><span class="ident">toplevel</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_impl</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">shell_data</span>.<span class="ident">user_impl</span>.<span class="ident">borrow_mut</span>();
-            (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">user_impl</span>)(
+            (<span class="kw-2">*</span><span class="ident">user_impl</span>)(
                 <span class="ident">XdgRequest::Fullscreen</span> {
                     <span class="ident">surface</span>: <span class="ident">handle</span>,
                     <span class="ident">output</span>,
@@ -1500,14 +1500,14 @@
         <span class="ident">xdg_toplevel::Request::UnsetFullscreen</span> =&gt; {
             <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">make_toplevel_handle</span>(<span class="kw-2">&amp;</span><span class="ident">toplevel</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_impl</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">shell_data</span>.<span class="ident">user_impl</span>.<span class="ident">borrow_mut</span>();
-            (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">user_impl</span>)(<span class="ident">XdgRequest::UnFullscreen</span> { <span class="ident">surface</span>: <span class="ident">handle</span> }, <span class="ident">dispatch_data</span>);
+            (<span class="kw-2">*</span><span class="ident">user_impl</span>)(<span class="ident">XdgRequest::UnFullscreen</span> { <span class="ident">surface</span>: <span class="ident">handle</span> }, <span class="ident">dispatch_data</span>);
         }
         <span class="ident">xdg_toplevel::Request::SetMinimized</span> =&gt; {
             <span class="comment">// This has to be handled by the compositor, may not be</span>
             <span class="comment">// supported and just ignored</span>
             <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">make_toplevel_handle</span>(<span class="kw-2">&amp;</span><span class="ident">toplevel</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_impl</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">shell_data</span>.<span class="ident">user_impl</span>.<span class="ident">borrow_mut</span>();
-            (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">user_impl</span>)(<span class="ident">XdgRequest::Minimize</span> { <span class="ident">surface</span>: <span class="ident">handle</span> }, <span class="ident">dispatch_data</span>);
+            (<span class="kw-2">*</span><span class="ident">user_impl</span>)(<span class="ident">XdgRequest::Minimize</span> { <span class="ident">surface</span>: <span class="ident">handle</span> }, <span class="ident">dispatch_data</span>);
         }
         <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
     }
@@ -1584,7 +1584,7 @@
             <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">make_popup_handle</span>(<span class="kw-2">&amp;</span><span class="ident">popup</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_impl</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">shell_data</span>.<span class="ident">user_impl</span>.<span class="ident">borrow_mut</span>();
             <span class="kw">let</span> <span class="ident">serial</span> <span class="op">=</span> <span class="ident">Serial::from</span>(<span class="ident">serial</span>);
-            (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">user_impl</span>)(
+            (<span class="kw-2">*</span><span class="ident">user_impl</span>)(
                 <span class="ident">XdgRequest::Grab</span> {
                     <span class="ident">surface</span>: <span class="ident">handle</span>,
                     <span class="ident">seat</span>,
@@ -1604,7 +1604,7 @@
                 .<span class="ident">unwrap</span>()
                 .<span class="ident">borrow</span>();
 
-            (<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">user_impl</span>)(
+            (<span class="kw-2">*</span><span class="ident">user_impl</span>)(
                 <span class="ident">XdgRequest::RePosition</span> {
                     <span class="ident">surface</span>: <span class="ident">handle</span>,
                     <span class="ident">positioner</span>: <span class="ident">positioner_data</span>,
@@ -1648,5 +1648,5 @@
     });
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (60e50fc1c 2022-04-04)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (1f7fb6413 2022-04-10)" ></div>
 </body></html>
