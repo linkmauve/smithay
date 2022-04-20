@@ -141,7 +141,7 @@
     <span class="ident">desktop</span>::{
         <span class="ident">layer::LayerSurface</span>,
         <span class="ident">popup</span>::{<span class="ident">PopupKind</span>, <span class="ident">PopupManager</span>},
-        <span class="ident">space</span>::{<span class="ident">window_loc</span>, <span class="ident">Space</span>},
+        <span class="ident">space::Space</span>,
         <span class="ident">utils</span>::{<span class="ident">bbox_from_surface_tree</span>, <span class="ident">damage_from_surface_tree</span>},
         <span class="ident">window::Window</span>,
     },
@@ -161,7 +161,7 @@
 
 <span class="kw">impl</span> <span class="ident">Window</span> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">popup_elements</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">space_id</span>: <span class="ident">usize</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">RenderPopup</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">loc</span> <span class="op">=</span> <span class="ident">window_loc</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="ident">space_id</span>) <span class="op">+</span> <span class="self">self</span>.<span class="ident">geometry</span>().<span class="ident">loc</span>;
+        <span class="kw">let</span> <span class="ident">loc</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">elem_location</span>(<span class="ident">space_id</span>) <span class="op">+</span> <span class="self">self</span>.<span class="ident">geometry</span>().<span class="ident">loc</span>;
         <span class="self">self</span>.<span class="ident">toplevel</span>()
             .<span class="ident">get_surface</span>()
             .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">surface</span><span class="op">|</span> {
@@ -270,5 +270,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (311e2683e 2022-04-18)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4ca19e09d 2022-04-19)" ></div>
 </body></html>
