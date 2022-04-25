@@ -2220,6 +2220,9 @@
 <span id="2215">2215</span>
 <span id="2216">2216</span>
 <span id="2217">2217</span>
+<span id="2218">2218</span>
+<span id="2219">2219</span>
+<span id="2220">2220</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Implementation of the rendering traits using OpenGL ES 2</span>
 
 <span class="kw">use</span> <span class="ident">cgmath</span>::{<span class="ident">prelude</span>::<span class="kw-2">*</span>, <span class="ident">Matrix3</span>, <span class="ident">Vector2</span>};
@@ -4089,6 +4092,7 @@
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ffi::types::GLfloat</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
         <span class="kw">unsafe</span> {
+            <span class="self">self</span>.<span class="ident">gl</span>.<span class="ident">Disable</span>(<span class="ident">ffi::BLEND</span>);
             <span class="self">self</span>.<span class="ident">gl</span>.<span class="ident">UseProgram</span>(<span class="self">self</span>.<span class="ident">solid_program</span>.<span class="ident">program</span>);
             <span class="self">self</span>.<span class="ident">gl</span>.<span class="ident">Uniform4f</span>(
                 <span class="self">self</span>.<span class="ident">solid_program</span>.<span class="ident">uniform_color</span>,
@@ -4181,6 +4185,8 @@
                 .<span class="ident">DisableVertexAttribArray</span>(<span class="self">self</span>.<span class="ident">solid_program</span>.<span class="ident">attrib_vert</span> <span class="kw">as</span> <span class="ident">u32</span>);
             <span class="self">self</span>.<span class="ident">gl</span>
                 .<span class="ident">DisableVertexAttribArray</span>(<span class="self">self</span>.<span class="ident">solid_program</span>.<span class="ident">attrib_position</span> <span class="kw">as</span> <span class="ident">u32</span>);
+            <span class="self">self</span>.<span class="ident">gl</span>.<span class="ident">Enable</span>(<span class="ident">ffi::BLEND</span>);
+            <span class="self">self</span>.<span class="ident">gl</span>.<span class="ident">BlendFunc</span>(<span class="ident">ffi::ONE</span>, <span class="ident">ffi::ONE_MINUS_SRC_ALPHA</span>);
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -4438,5 +4444,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4ca19e09d 2022-04-19)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (18f314e70 2022-04-24)" ></div>
 </body></html>
