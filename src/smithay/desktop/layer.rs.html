@@ -635,6 +635,16 @@
 <span id="630">630</span>
 <span id="631">631</span>
 <span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">backend::renderer</span>::{<span class="ident">utils::draw_surface_tree</span>, <span class="ident">ImportAll</span>, <span class="ident">Renderer</span>},
     <span class="ident">desktop</span>::{<span class="ident">utils</span>::<span class="kw-2">*</span>, <span class="ident">PopupManager</span>, <span class="ident">Space</span>},
@@ -692,7 +702,12 @@
             <span class="ident">zone</span>: <span class="ident">Rectangle::from_loc_and_size</span>(
                 (<span class="number">0</span>, <span class="number">0</span>),
                 <span class="ident">o</span>.<span class="ident">current_mode</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">mode</span><span class="op">|</span> <span class="ident">mode</span>.<span class="ident">size</span>.<span class="ident">to_logical</span>(<span class="ident">o</span>.<span class="ident">current_scale</span>()))
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">mode</span><span class="op">|</span> {
+                        <span class="ident">mode</span>.<span class="ident">size</span>
+                            .<span class="ident">to_f64</span>()
+                            .<span class="ident">to_logical</span>(<span class="ident">o</span>.<span class="ident">current_scale</span>().<span class="ident">fractional_scale</span>())
+                            .<span class="ident">to_i32_round</span>()
+                    })
                     .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> (<span class="number">0</span>, <span class="number">0</span>).<span class="ident">into</span>()),
             ),
             <span class="ident">surfaces</span>: <span class="ident">Vec::new</span>(),
@@ -830,7 +845,12 @@
                 (<span class="number">0</span>, <span class="number">0</span>),
                 <span class="ident">output</span>
                     .<span class="ident">current_mode</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">mode</span><span class="op">|</span> <span class="ident">mode</span>.<span class="ident">size</span>.<span class="ident">to_logical</span>(<span class="ident">output</span>.<span class="ident">current_scale</span>()))
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">mode</span><span class="op">|</span> {
+                        <span class="ident">mode</span>.<span class="ident">size</span>
+                            .<span class="ident">to_f64</span>()
+                            .<span class="ident">to_logical</span>(<span class="ident">output</span>.<span class="ident">current_scale</span>().<span class="ident">fractional_scale</span>())
+                            .<span class="ident">to_i32_round</span>()
+                    })
                     .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> (<span class="number">0</span>, <span class="number">0</span>).<span class="ident">into</span>()),
             );
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zone</span> <span class="op">=</span> <span class="ident">output_rect</span>;

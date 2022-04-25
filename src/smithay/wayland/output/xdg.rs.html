@@ -175,6 +175,12 @@
 <span id="170">170</span>
 <span id="171">171</span>
 <span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
 </pre><pre class="rust"><code><span class="doccomment">//! XDG Output advertising capabilities</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This protocol is meant for describing outputs in a way</span>
@@ -194,7 +200,7 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utils</span>::{<span class="ident">Logical</span>, <span class="ident">Physical</span>, <span class="ident">Point</span>, <span class="ident">Size</span>};
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Mode</span>, <span class="ident">Output</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Mode</span>, <span class="ident">Output</span>, <span class="ident">Scale</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Inner</span> {
@@ -203,7 +209,7 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">logical_position</span>: <span class="ident">Point</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Logical</span><span class="op">&gt;</span>,
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">physical_size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Size</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Physical</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">scale</span>: <span class="ident">i32</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">scale</span>: <span class="ident">Scale</span>,
 
     <span class="ident">instances</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ZxdgOutputV1</span><span class="op">&gt;</span>,
     <span class="ident">_log</span>: <span class="ident">::slog::Logger</span>,
@@ -241,7 +247,10 @@
         <span class="ident">xdg_output</span>.<span class="ident">logical_position</span>(<span class="ident">inner</span>.<span class="ident">logical_position</span>.<span class="ident">x</span>, <span class="ident">inner</span>.<span class="ident">logical_position</span>.<span class="ident">y</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">size</span>) <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">physical_size</span> {
-            <span class="kw">let</span> <span class="ident">logical_size</span> <span class="op">=</span> <span class="ident">size</span>.<span class="ident">to_logical</span>(<span class="ident">inner</span>.<span class="ident">scale</span>);
+            <span class="kw">let</span> <span class="ident">logical_size</span> <span class="op">=</span> <span class="ident">size</span>
+                .<span class="ident">to_f64</span>()
+                .<span class="ident">to_logical</span>(<span class="ident">inner</span>.<span class="ident">scale</span>.<span class="ident">fractional_scale</span>())
+                .<span class="ident">to_i32_round</span>();
             <span class="ident">xdg_output</span>.<span class="ident">logical_size</span>(<span class="ident">logical_size</span>.<span class="ident">w</span>, <span class="ident">logical_size</span>.<span class="ident">h</span>);
         }
 
@@ -277,7 +286,7 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">change_current_state</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">new_mode</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Mode</span><span class="op">&gt;</span>,
-        <span class="ident">new_scale</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>,
+        <span class="ident">new_scale</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Scale</span><span class="op">&gt;</span>,
         <span class="ident">new_location</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Point</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Logical</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     ) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
@@ -295,7 +304,10 @@
         <span class="kw">for</span> <span class="ident">instance</span> <span class="kw">in</span> <span class="ident">output</span>.<span class="ident">instances</span>.<span class="ident">iter</span>() {
             <span class="kw">if</span> <span class="ident">new_mode</span>.<span class="ident">is_some</span>() <span class="op">|</span> <span class="ident">new_scale</span>.<span class="ident">is_some</span>() {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">size</span>) <span class="op">=</span> <span class="ident">output</span>.<span class="ident">physical_size</span> {
-                    <span class="kw">let</span> <span class="ident">logical_size</span> <span class="op">=</span> <span class="ident">size</span>.<span class="ident">to_logical</span>(<span class="ident">output</span>.<span class="ident">scale</span>);
+                    <span class="kw">let</span> <span class="ident">logical_size</span> <span class="op">=</span> <span class="ident">size</span>
+                        .<span class="ident">to_f64</span>()
+                        .<span class="ident">to_logical</span>(<span class="ident">output</span>.<span class="ident">scale</span>.<span class="ident">fractional_scale</span>())
+                        .<span class="ident">to_i32_round</span>();
                     <span class="ident">instance</span>.<span class="ident">logical_size</span>(<span class="ident">logical_size</span>.<span class="ident">w</span>, <span class="ident">logical_size</span>.<span class="ident">h</span>);
                 }
             }

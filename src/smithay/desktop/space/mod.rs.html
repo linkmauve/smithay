@@ -1068,23 +1068,6 @@
 <span id="1063">1063</span>
 <span id="1064">1064</span>
 <span id="1065">1065</span>
-<span id="1066">1066</span>
-<span id="1067">1067</span>
-<span id="1068">1068</span>
-<span id="1069">1069</span>
-<span id="1070">1070</span>
-<span id="1071">1071</span>
-<span id="1072">1072</span>
-<span id="1073">1073</span>
-<span id="1074">1074</span>
-<span id="1075">1075</span>
-<span id="1076">1076</span>
-<span id="1077">1077</span>
-<span id="1078">1078</span>
-<span id="1079">1079</span>
-<span id="1080">1080</span>
-<span id="1081">1081</span>
-<span id="1082">1082</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the [`Space`] helper class as well has related</span>
 <span class="doccomment">//! rendering helpers to add custom elements or different clients to a space.</span>
 
@@ -1306,18 +1289,13 @@
     <span class="doccomment">/// Maps an [`Output`] inside the space.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Can be safely called on an already mapped</span>
-    <span class="doccomment">/// [`Output`] to update its scale or location.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The scale is the what is rendered for the given output</span>
-    <span class="doccomment">/// and may be fractional. It is independent from the integer scale</span>
-    <span class="doccomment">/// reported to clients by the output.</span>
+    <span class="doccomment">/// [`Output`] to update its location.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *Note:* Remapping an output does reset it&#39;s damage memory.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_output</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Point</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Logical</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">Output</span>, <span class="ident">scale</span>: <span class="ident">f64</span>, <span class="ident">location</span>: <span class="ident">P</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_output</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Point</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Logical</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">Output</span>, <span class="ident">location</span>: <span class="ident">P</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">output_state</span>(<span class="self">self</span>.<span class="ident">id</span>, <span class="ident">output</span>);
         <span class="kw-2">*</span><span class="ident">state</span> <span class="op">=</span> <span class="ident">OutputState</span> {
             <span class="ident">location</span>: <span class="ident">location</span>.<span class="ident">into</span>(),
-            <span class="ident">render_scale</span>: <span class="ident">scale</span>,
             <span class="comment">// keep surfaces, we still need to inform them of leaving,</span>
             <span class="comment">// if they don&#39;t overlap anymore during refresh.</span>
             <span class="ident">surfaces</span>: <span class="ident">state</span>.<span class="ident">surfaces</span>.<span class="ident">drain</span>(..).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
@@ -1350,7 +1328,7 @@
     <span class="doccomment">/// Returns the geometry of the output including it&#39;s relative position inside the space.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The size is matching the amount of logical pixels of the space visible on the output</span>
-    <span class="doccomment">/// given is current mode and render scale.</span>
+    <span class="doccomment">/// given is current mode and scale.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">output_geometry</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="ident">Output</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rectangle</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Logical</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">outputs</span>.<span class="ident">contains</span>(<span class="ident">o</span>) {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
@@ -1364,23 +1342,10 @@
                 <span class="ident">transform</span>
                     .<span class="ident">transform_size</span>(<span class="ident">mode</span>.<span class="ident">size</span>)
                     .<span class="ident">to_f64</span>()
-                    .<span class="ident">to_logical</span>(<span class="ident">state</span>.<span class="ident">render_scale</span>)
+                    .<span class="ident">to_logical</span>(<span class="ident">o</span>.<span class="ident">current_scale</span>().<span class="ident">fractional_scale</span>())
                     .<span class="ident">to_i32_round</span>(),
             )
         })
-    }
-
-    <span class="doccomment">/// Returns the reder scale of a mapped output.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the output was not previously mapped to the `Space`</span>
-    <span class="doccomment">/// this function returns `None`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">output_scale</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="ident">Output</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">outputs</span>.<span class="ident">contains</span>(<span class="ident">o</span>) {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
-        }
-
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">output_state</span>(<span class="self">self</span>.<span class="ident">id</span>, <span class="ident">o</span>);
-        <span class="prelude-val">Some</span>(<span class="ident">state</span>.<span class="ident">render_scale</span>)
     }
 
     <span class="doccomment">/// Returns all [`Output`]s a [`Window`] overlaps with.</span>
@@ -1538,7 +1503,7 @@
             .<span class="ident">ok_or</span>(<span class="ident">RenderError::OutputNoMode</span>)<span class="question-mark">?</span>
             .<span class="ident">size</span>
             .<span class="ident">to_f64</span>()
-            .<span class="ident">to_logical</span>(<span class="ident">state</span>.<span class="ident">render_scale</span>)
+            .<span class="ident">to_logical</span>(<span class="ident">output</span>.<span class="ident">current_scale</span>().<span class="ident">fractional_scale</span>())
             .<span class="ident">to_i32_round</span>();
         <span class="kw">let</span> <span class="ident">output_geo</span> <span class="op">=</span> <span class="ident">Rectangle::from_loc_and_size</span>(<span class="ident">state</span>.<span class="ident">location</span>, <span class="ident">output_size</span>);
         <span class="kw">let</span> <span class="ident">layer_map</span> <span class="op">=</span> <span class="ident">layer_map_for_output</span>(<span class="ident">output</span>);
@@ -1651,11 +1616,12 @@
         }
 
         <span class="kw">let</span> <span class="ident">output_transform</span>: <span class="ident">Transform</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">current_transform</span>().<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">output_scale</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">current_scale</span>().<span class="ident">fractional_scale</span>();
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">renderer</span>.<span class="ident">render</span>(
             <span class="ident">output_transform</span>
                 .<span class="ident">transform_size</span>(<span class="ident">output_size</span>)
                 .<span class="ident">to_f64</span>()
-                .<span class="ident">to_physical</span>(<span class="ident">state</span>.<span class="ident">render_scale</span>)
+                .<span class="ident">to_physical</span>(<span class="ident">output_scale</span>)
                 .<span class="ident">to_i32_round</span>(),
             <span class="ident">output_transform</span>,
             <span class="op">|</span><span class="ident">renderer</span>, <span class="ident">frame</span><span class="op">|</span> {
@@ -1668,7 +1634,7 @@
                         <span class="comment">// Map from global space to output space</span>
                         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">geo</span><span class="op">|</span> <span class="ident">Rectangle::from_loc_and_size</span>(<span class="ident">geo</span>.<span class="ident">loc</span> <span class="op">-</span> <span class="ident">output_geo</span>.<span class="ident">loc</span>, <span class="ident">geo</span>.<span class="ident">size</span>))
                         <span class="comment">// Map from logical to physical</span>
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">geo</span><span class="op">|</span> <span class="ident">geo</span>.<span class="ident">to_f64</span>().<span class="ident">to_physical</span>(<span class="ident">state</span>.<span class="ident">render_scale</span>))
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">geo</span><span class="op">|</span> <span class="ident">geo</span>.<span class="ident">to_f64</span>().<span class="ident">to_physical</span>(<span class="ident">output_scale</span>))
                         .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
                 )<span class="question-mark">?</span>;
                 <span class="comment">// Then re-draw all windows &amp; layers overlapping with a damage rect.</span>
@@ -1693,7 +1659,7 @@
                             <span class="self">self</span>.<span class="ident">id</span>,
                             <span class="ident">renderer</span>,
                             <span class="ident">frame</span>,
-                            <span class="ident">state</span>.<span class="ident">render_scale</span>,
+                            <span class="ident">output_scale</span>,
                             <span class="ident">loc</span> <span class="op">-</span> <span class="ident">output_geo</span>.<span class="ident">loc</span>,
                             <span class="kw-2">&amp;</span><span class="ident">damage</span>,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">logger</span>,

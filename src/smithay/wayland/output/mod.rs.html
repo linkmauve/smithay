@@ -465,6 +465,48 @@
 <span id="460">460</span>
 <span id="461">461</span>
 <span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Output advertising capabilities</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module provides a type helping you to abstract over various</span>
@@ -494,7 +536,7 @@
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//! # extern crate wayland_server;</span>
 <span class="doccomment">//! # extern crate smithay;</span>
-<span class="doccomment">//! use smithay::wayland::output::{Output, PhysicalProperties, Mode};</span>
+<span class="doccomment">//! use smithay::wayland::output::{Output, PhysicalProperties, Scale, Mode};</span>
 <span class="doccomment">//! use wayland_server::protocol::wl_output;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # let mut display = wayland_server::Display::new();</span>
@@ -517,7 +559,7 @@
 <span class="doccomment">//! output.change_current_state(</span>
 <span class="doccomment">//!     Some(Mode { size: (1920, 1080).into(), refresh: 60000 }), // the resolution mode,</span>
 <span class="doccomment">//!     Some(wl_output::Transform::Normal), // global screen transformation</span>
-<span class="doccomment">//!     Some(1), // global screen scaling factor</span>
+<span class="doccomment">//!     Some(Scale::Integer(1)), // global screen scaling factor</span>
 <span class="doccomment">//!     Some((0,0).into()) // output position</span>
 <span class="doccomment">//! );</span>
 <span class="doccomment">//! // set the preferred mode</span>
@@ -578,6 +620,48 @@
     <span class="kw">pub</span> <span class="ident">model</span>: <span class="ident">String</span>,
 }
 
+<span class="doccomment">/// Describes the scale advertised to clients.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Scale</span> {
+    <span class="doccomment">/// Integer based scaling</span>
+    <span class="ident">Integer</span>(<span class="ident">i32</span>),
+    <span class="doccomment">/// Fractional scaling</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// *Note*: Protocols only supporting integer-scales (e.g. wl_output),</span>
+    <span class="doccomment">/// will be rounded **up** to the next integer value. To control the value</span>
+    <span class="doccomment">/// send to those clients use `Scale::Custom` instead.</span>
+    <span class="ident">Fractional</span>(<span class="ident">f64</span>),
+    <span class="doccomment">/// Split scale values advertised to clients</span>
+    <span class="ident">Custom</span> {
+        <span class="doccomment">/// Integer value for protocols not supporting fractional scaling</span>
+        <span class="ident">advertised_integer</span>: <span class="ident">i32</span>,
+        <span class="doccomment">/// Fractional scaling value used elsewhere</span>
+        <span class="ident">fractional</span>: <span class="ident">f64</span>,
+    },
+}
+
+<span class="kw">impl</span> <span class="ident">Scale</span> {
+    <span class="doccomment">/// Returns the integer scale as advertised for this `Scale` variant</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">integer_scale</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">i32</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Scale::Integer</span>(<span class="ident">scale</span>) =&gt; <span class="kw-2">*</span><span class="ident">scale</span>,
+            <span class="ident">Scale::Fractional</span>(<span class="ident">scale</span>) =&gt; <span class="ident">scale</span>.<span class="ident">ceil</span>() <span class="kw">as</span> <span class="ident">i32</span>,
+            <span class="ident">Scale::Custom</span> {
+                <span class="ident">advertised_integer</span>, ..
+            } =&gt; <span class="kw-2">*</span><span class="ident">advertised_integer</span>,
+        }
+    }
+
+    <span class="doccomment">/// Returns the fractional scale (calculated if necessary)</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fractional_scale</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Scale::Integer</span>(<span class="ident">scale</span>) =&gt; <span class="kw-2">*</span><span class="ident">scale</span> <span class="kw">as</span> <span class="ident">f64</span>,
+            <span class="ident">Scale::Fractional</span>(<span class="ident">scale</span>) =&gt; <span class="kw-2">*</span><span class="ident">scale</span>,
+            <span class="ident">Scale::Custom</span> { <span class="ident">fractional</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">fractional</span>,
+        }
+    }
+}
+
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Inner</span> {
     <span class="ident">name</span>: <span class="ident">String</span>,
@@ -586,7 +670,7 @@
     <span class="ident">physical</span>: <span class="ident">PhysicalProperties</span>,
     <span class="ident">location</span>: <span class="ident">Point</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Logical</span><span class="op">&gt;</span>,
     <span class="ident">transform</span>: <span class="ident">Transform</span>,
-    <span class="ident">scale</span>: <span class="ident">i32</span>,
+    <span class="ident">scale</span>: <span class="ident">Scale</span>,
     <span class="ident">modes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Mode</span><span class="op">&gt;</span>,
     <span class="ident">current_mode</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Mode</span><span class="op">&gt;</span>,
     <span class="ident">preferred_mode</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Mode</span><span class="op">&gt;</span>,
@@ -623,7 +707,7 @@
             <span class="ident">output</span>.<span class="ident">mode</span>(<span class="ident">flags</span>, <span class="ident">mode</span>.<span class="ident">size</span>.<span class="ident">w</span>, <span class="ident">mode</span>.<span class="ident">size</span>.<span class="ident">h</span>, <span class="ident">mode</span>.<span class="ident">refresh</span>);
         }
         <span class="kw">if</span> <span class="ident">output</span>.<span class="ident">as_ref</span>().<span class="ident">version</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> {
-            <span class="ident">output</span>.<span class="ident">scale</span>(<span class="self">self</span>.<span class="ident">scale</span>);
+            <span class="ident">output</span>.<span class="ident">scale</span>(<span class="self">self</span>.<span class="ident">scale</span>.<span class="ident">integer_scale</span>());
             <span class="ident">output</span>.<span class="ident">done</span>();
         }
 
@@ -673,7 +757,7 @@
                 <span class="ident">physical</span>,
                 <span class="ident">location</span>: (<span class="number">0</span>, <span class="number">0</span>).<span class="ident">into</span>(),
                 <span class="ident">transform</span>: <span class="ident">Transform::Normal</span>,
-                <span class="ident">scale</span>: <span class="number">1</span>,
+                <span class="ident">scale</span>: <span class="ident">Scale::Integer</span>(<span class="number">1</span>),
                 <span class="ident">modes</span>: <span class="ident">Vec::new</span>(),
                 <span class="ident">current_mode</span>: <span class="prelude-val">None</span>,
                 <span class="ident">preferred_mode</span>: <span class="prelude-val">None</span>,
@@ -762,8 +846,8 @@
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="number">0</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">transform</span>
     }
 
-    <span class="doccomment">/// Returns the currenly advertised scale of the output</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_scale</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">i32</span> {
+    <span class="doccomment">/// Returns the currenly set scale of the output</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_scale</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Scale</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="number">0</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">scale</span>
     }
 
@@ -820,7 +904,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">new_mode</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Mode</span><span class="op">&gt;</span>,
         <span class="ident">new_transform</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Transform</span><span class="op">&gt;</span>,
-        <span class="ident">new_scale</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>,
+        <span class="ident">new_scale</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Scale</span><span class="op">&gt;</span>,
         <span class="ident">new_location</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Point</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">Logical</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     ) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="number">0</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
@@ -859,7 +943,7 @@
             }
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">scale</span>) <span class="op">=</span> <span class="ident">new_scale</span> {
                 <span class="kw">if</span> <span class="ident">output</span>.<span class="ident">as_ref</span>().<span class="ident">version</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> {
-                    <span class="ident">output</span>.<span class="ident">scale</span>(<span class="ident">scale</span>);
+                    <span class="ident">output</span>.<span class="ident">scale</span>(<span class="ident">scale</span>.<span class="ident">integer_scale</span>());
                 }
             }
             <span class="kw">if</span> <span class="ident">output</span>.<span class="ident">as_ref</span>().<span class="ident">version</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> {
