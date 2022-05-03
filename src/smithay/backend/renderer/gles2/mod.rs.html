@@ -2223,6 +2223,13 @@
 <span id="2218">2218</span>
 <span id="2219">2219</span>
 <span id="2220">2220</span>
+<span id="2221">2221</span>
+<span id="2222">2222</span>
+<span id="2223">2223</span>
+<span id="2224">2224</span>
+<span id="2225">2225</span>
+<span id="2226">2226</span>
+<span id="2227">2227</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Implementation of the rendering traits using OpenGL ES 2</span>
 
 <span class="kw">use</span> <span class="ident">cgmath</span>::{<span class="ident">prelude</span>::<span class="kw-2">*</span>, <span class="ident">Matrix3</span>, <span class="ident">Vector2</span>};
@@ -2790,7 +2797,7 @@
     <span class="doccomment">/// - This renderer has no default framebuffer, use `Bind::bind` before rendering.</span>
     <span class="doccomment">/// - Binding a new target, while another one is already bound, will replace the current target.</span>
     <span class="doccomment">/// - Shm buffers can be released after a successful import, without the texture handle becoming invalid.</span>
-    <span class="doccomment">/// - Texture filtering starts with Nearest-downscaling and Linear-upscaling</span>
+    <span class="doccomment">/// - Texture filtering starts with Linear-downscaling and Linear-upscaling</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">L</span><span class="op">&gt;</span>(<span class="ident">context</span>: <span class="ident">EGLContext</span>, <span class="ident">logger</span>: <span class="ident">L</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Gles2Renderer</span>, <span class="ident">Gles2Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">L</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">::slog::Logger</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -2907,7 +2914,7 @@
             <span class="ident">destruction_callback</span>: <span class="ident">rx</span>,
             <span class="ident">destruction_callback_sender</span>: <span class="ident">tx</span>,
             <span class="ident">vbos</span>,
-            <span class="ident">min_filter</span>: <span class="ident">TextureFilter::Nearest</span>,
+            <span class="ident">min_filter</span>: <span class="ident">TextureFilter::Linear</span>,
             <span class="ident">max_filter</span>: <span class="ident">TextureFilter::Linear</span>,
             <span class="ident">supports_instancing</span>,
             <span class="ident">logger_ptr</span>,
@@ -4314,8 +4321,15 @@
         <span class="kw">unsafe</span> {
             <span class="self">self</span>.<span class="ident">gl</span>.<span class="ident">ActiveTexture</span>(<span class="ident">ffi::TEXTURE0</span>);
             <span class="self">self</span>.<span class="ident">gl</span>.<span class="ident">BindTexture</span>(<span class="ident">target</span>, <span class="ident">tex</span>.<span class="number">0</span>.<span class="ident">texture</span>);
+            <span class="self">self</span>.<span class="ident">gl</span>
+                .<span class="ident">TexParameteri</span>(<span class="ident">target</span>, <span class="ident">ffi::TEXTURE_WRAP_S</span>, <span class="ident">ffi::CLAMP_TO_BORDER</span> <span class="kw">as</span> <span class="ident">i32</span>);
+            <span class="self">self</span>.<span class="ident">gl</span>
+                .<span class="ident">TexParameteri</span>(<span class="ident">target</span>, <span class="ident">ffi::TEXTURE_WRAP_T</span>, <span class="ident">ffi::CLAMP_TO_BORDER</span> <span class="kw">as</span> <span class="ident">i32</span>);
+            <span class="kw">let</span> <span class="ident">border_color</span> <span class="op">=</span> [<span class="number">0.0f32</span>, <span class="number">0.0f32</span>, <span class="number">0.0f32</span>, <span class="number">0.0f32</span>];
+            <span class="self">self</span>.<span class="ident">gl</span>
+                .<span class="ident">TexParameterfv</span>(<span class="ident">target</span>, <span class="ident">ffi::TEXTURE_BORDER_COLOR</span>, <span class="ident">border_color</span>.<span class="ident">as_ptr</span>());
             <span class="self">self</span>.<span class="ident">gl</span>.<span class="ident">TexParameteri</span>(
-                <span class="ident">ffi::TEXTURE_2D</span>,
+                <span class="ident">target</span>,
                 <span class="ident">ffi::TEXTURE_MIN_FILTER</span>,
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">min_filter</span> {
                     <span class="ident">TextureFilter::Nearest</span> =&gt; <span class="ident">ffi::NEAREST</span> <span class="kw">as</span> <span class="ident">i32</span>,
@@ -4323,7 +4337,7 @@
                 },
             );
             <span class="self">self</span>.<span class="ident">gl</span>.<span class="ident">TexParameteri</span>(
-                <span class="ident">ffi::TEXTURE_2D</span>,
+                <span class="ident">target</span>,
                 <span class="ident">ffi::TEXTURE_MAG_FILTER</span>,
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">max_filter</span> {
                     <span class="ident">TextureFilter::Nearest</span> =&gt; <span class="ident">ffi::NEAREST</span> <span class="kw">as</span> <span class="ident">i32</span>,
@@ -4444,5 +4458,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e85edd9a8 2022-04-28)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (bed05e996 2022-05-02)" ></div>
 </body></html>

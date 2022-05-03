@@ -1067,7 +1067,6 @@
 <span id="1062">1062</span>
 <span id="1063">1063</span>
 <span id="1064">1064</span>
-<span id="1065">1065</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains the [`Space`] helper class as well has related</span>
 <span class="doccomment">//! rendering helpers to add custom elements or different clients to a space.</span>
 
@@ -1498,14 +1497,17 @@
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">output_state</span>(<span class="self">self</span>.<span class="ident">id</span>, <span class="ident">output</span>);
-        <span class="kw">let</span> <span class="ident">output_size</span> <span class="op">=</span> <span class="ident">output</span>
-            .<span class="ident">current_mode</span>()
-            .<span class="ident">ok_or</span>(<span class="ident">RenderError::OutputNoMode</span>)<span class="question-mark">?</span>
-            .<span class="ident">size</span>
-            .<span class="ident">to_f64</span>()
-            .<span class="ident">to_logical</span>(<span class="ident">output</span>.<span class="ident">current_scale</span>().<span class="ident">fractional_scale</span>())
-            .<span class="ident">to_i32_round</span>();
-        <span class="kw">let</span> <span class="ident">output_geo</span> <span class="op">=</span> <span class="ident">Rectangle::from_loc_and_size</span>(<span class="ident">state</span>.<span class="ident">location</span>, <span class="ident">output_size</span>);
+        <span class="kw">let</span> <span class="ident">output_size</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">current_mode</span>().<span class="ident">ok_or</span>(<span class="ident">RenderError::OutputNoMode</span>)<span class="question-mark">?</span>.<span class="ident">size</span>;
+        <span class="comment">// We explicitly use ceil for the output geometry size to make sure the damage</span>
+        <span class="comment">// spans at least the output size. Round and floor would result in parts not drawn as the</span>
+        <span class="comment">// frame size could be bigger than the maximum the output_geo would define.</span>
+        <span class="kw">let</span> <span class="ident">output_geo</span> <span class="op">=</span> <span class="ident">Rectangle::from_loc_and_size</span>(
+            <span class="ident">state</span>.<span class="ident">location</span>,
+            <span class="ident">output_size</span>
+                .<span class="ident">to_f64</span>()
+                .<span class="ident">to_logical</span>(<span class="ident">output</span>.<span class="ident">current_scale</span>().<span class="ident">fractional_scale</span>())
+                .<span class="ident">to_i32_ceil</span>(),
+        );
         <span class="kw">let</span> <span class="ident">layer_map</span> <span class="op">=</span> <span class="ident">layer_map_for_output</span>(<span class="ident">output</span>);
 
         <span class="kw">let</span> <span class="ident">window_popups</span> <span class="op">=</span> <span class="self">self</span>
@@ -1618,11 +1620,7 @@
         <span class="kw">let</span> <span class="ident">output_transform</span>: <span class="ident">Transform</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">current_transform</span>().<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">output_scale</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">current_scale</span>().<span class="ident">fractional_scale</span>();
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">renderer</span>.<span class="ident">render</span>(
-            <span class="ident">output_transform</span>
-                .<span class="ident">transform_size</span>(<span class="ident">output_size</span>)
-                .<span class="ident">to_f64</span>()
-                .<span class="ident">to_physical</span>(<span class="ident">output_scale</span>)
-                .<span class="ident">to_i32_round</span>(),
+            <span class="ident">output_transform</span>.<span class="ident">transform_size</span>(<span class="ident">output_size</span>),
             <span class="ident">output_transform</span>,
             <span class="op">|</span><span class="ident">renderer</span>, <span class="ident">frame</span><span class="op">|</span> {
                 <span class="comment">// First clear all damaged regions</span>
@@ -2134,5 +2132,5 @@
     };
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (e85edd9a8 2022-04-28)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (bed05e996 2022-05-02)" ></div>
 </body></html>
