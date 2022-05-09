@@ -191,7 +191,6 @@
 <span class="doccomment">//! backend in a compositor.</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">io</span>,
     <span class="ident">sync::Arc</span>,
     <span class="ident">thread</span>::{<span class="ident">spawn</span>, <span class="ident">JoinHandle</span>},
 };
@@ -206,7 +205,7 @@
 };
 
 <span class="kw">use</span> <span class="ident">calloop</span>::{
-    <span class="ident">channel</span>::{<span class="ident">sync_channel</span>, <span class="ident">Channel</span>, <span class="ident">Event</span> <span class="kw">as</span> <span class="ident">ChannelEvent</span>, <span class="ident">SyncSender</span>},
+    <span class="ident">channel</span>::{<span class="ident">sync_channel</span>, <span class="ident">Channel</span>, <span class="ident">ChannelError</span>, <span class="ident">Event</span> <span class="kw">as</span> <span class="ident">ChannelEvent</span>, <span class="ident">SyncSender</span>},
     <span class="ident">EventSource</span>, <span class="ident">Poll</span>, <span class="ident">PostAction</span>, <span class="ident">Readiness</span>, <span class="ident">Token</span>, <span class="ident">TokenFactory</span>,
 };
 
@@ -290,13 +289,14 @@
     <span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
     <span class="kw">type</span> <span class="ident">Metadata</span> <span class="op">=</span> ();
     <span class="kw">type</span> <span class="ident">Ret</span> <span class="op">=</span> ();
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">ChannelError</span>;
 
     <span class="kw">fn</span> <span class="ident">process_events</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">readiness</span>: <span class="ident">Readiness</span>,
         <span class="ident">token</span>: <span class="ident">Token</span>,
         <span class="kw-2">mut</span> <span class="ident">callback</span>: <span class="ident">C</span>,
-    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">PostAction</span><span class="op">&gt;</span>
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PostAction</span>, <span class="ident">ChannelError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">C</span>: <span class="ident">FnMut</span>(<span class="ident"><span class="self">Self</span>::Event</span>, <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Metadata</span>) -&gt; <span class="ident"><span class="self">Self</span>::Ret</span>,
     {
@@ -312,7 +312,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">poll</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span>, <span class="ident">factory</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenFactory</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">poll</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span>, <span class="ident">factory</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenFactory</span>) -&gt; <span class="ident">calloop::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">channel</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">channel</span> {
             <span class="ident">channel</span>.<span class="ident">register</span>(<span class="ident">poll</span>, <span class="ident">factory</span>)<span class="question-mark">?</span>;
         }
@@ -320,7 +320,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">reregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">poll</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span>, <span class="ident">factory</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenFactory</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">reregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">poll</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span>, <span class="ident">factory</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenFactory</span>) -&gt; <span class="ident">calloop::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">channel</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">channel</span> {
             <span class="ident">channel</span>.<span class="ident">reregister</span>(<span class="ident">poll</span>, <span class="ident">factory</span>)<span class="question-mark">?</span>;
         }
@@ -328,7 +328,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">unregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">poll</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">unregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">poll</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span>) -&gt; <span class="ident">calloop::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">channel</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">channel</span> {
             <span class="ident">channel</span>.<span class="ident">unregister</span>(<span class="ident">poll</span>)<span class="question-mark">?</span>;
         }
@@ -368,5 +368,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (bed05e996 2022-05-02)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (cb1219871 2022-05-08)" ></div>
 </body></html>

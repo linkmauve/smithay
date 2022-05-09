@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/calloop-0.9.3/src/sources/channel.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>channel.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/calloop-0.10.0/src/sources/channel.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>channel.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../calloop/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -309,6 +309,7 @@
 <span id="304">304</span>
 <span id="305">305</span>
 <span id="306">306</span>
+<span id="307">307</span>
 </pre><pre class="rust"><code><span class="doccomment">//! An MPSC channel whose receiving end is an event source</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Create a channel using [`channel()`](channel), which returns a</span>
@@ -323,7 +324,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">EventSource</span>, <span class="ident">Poll</span>, <span class="ident">PostAction</span>, <span class="ident">Readiness</span>, <span class="ident">Token</span>, <span class="ident">TokenFactory</span>};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ping</span>::{<span class="ident">make_ping</span>, <span class="ident">Ping</span>, <span class="ident">PingSource</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ping</span>::{<span class="ident">make_ping</span>, <span class="ident">Ping</span>, <span class="ident">PingError</span>, <span class="ident">PingSource</span>};
 
 <span class="doccomment">/// The events generated by the channel event source</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -346,8 +347,8 @@
     <span class="ident">ping</span>: <span class="ident">Ping</span>,
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">tarpaulin_include</span>))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">coverage</span>, <span class="ident">no_coverage</span>)]</span>
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">Sender</span> {
             <span class="ident">sender</span>: <span class="self">self</span>.<span class="ident">sender</span>.<span class="ident">clone</span>(),
@@ -382,8 +383,8 @@
     <span class="ident">ping</span>: <span class="ident">Ping</span>,
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">tarpaulin_include</span>))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">SyncSender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">coverage</span>, <span class="ident">no_coverage</span>)]</span>
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SyncSender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">SyncSender</span> {
             <span class="ident">sender</span>: <span class="self">self</span>.<span class="ident">sender</span>.<span class="ident">clone</span>(),
@@ -460,13 +461,14 @@
     <span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
     <span class="kw">type</span> <span class="ident">Metadata</span> <span class="op">=</span> ();
     <span class="kw">type</span> <span class="ident">Ret</span> <span class="op">=</span> ();
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">ChannelError</span>;
 
     <span class="kw">fn</span> <span class="ident">process_events</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">readiness</span>: <span class="ident">Readiness</span>,
         <span class="ident">token</span>: <span class="ident">Token</span>,
         <span class="kw-2">mut</span> <span class="ident">callback</span>: <span class="ident">C</span>,
-    ) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">PostAction</span><span class="op">&gt;</span>
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PostAction</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">C</span>: <span class="ident">FnMut</span>(<span class="ident"><span class="self">Self</span>::Event</span>, <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Metadata</span>) -&gt; <span class="ident"><span class="self">Self</span>::Ret</span>,
     {
@@ -482,13 +484,10 @@
                     }
                 }
             })
+            .<span class="ident">map_err</span>(<span class="ident">ChannelError</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">register</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">poll</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span>,
-        <span class="ident">token_factory</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenFactory</span>,
-    ) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">poll</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span>, <span class="ident">token_factory</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenFactory</span>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">register</span>(<span class="ident">poll</span>, <span class="ident">token_factory</span>)
     }
 
@@ -496,14 +495,19 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">poll</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span>,
         <span class="ident">token_factory</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenFactory</span>,
-    ) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    ) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">reregister</span>(<span class="ident">poll</span>, <span class="ident">token_factory</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">unregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">poll</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">unregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">poll</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">unregister</span>(<span class="ident">poll</span>)
     }
 }
+
+<span class="doccomment">/// An error arising from processing events for a channel.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">thiserror::Error</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ChannelError</span>(<span class="ident">PingError</span>);
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
@@ -529,12 +533,11 @@
                     <span class="ident">got</span>.<span class="number">1</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 }
             })
-            .<span class="ident">map_err</span>(<span class="ident">Into</span>::<span class="op">&lt;</span><span class="ident">std::io::Error</span><span class="op">&gt;</span><span class="ident">::into</span>)
             .<span class="ident">unwrap</span>();
 
         <span class="comment">// nothing is sent, nothing is received</span>
         <span class="ident">event_loop</span>
-            .<span class="ident">dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">::std::time::Duration::from_millis</span>(<span class="number">0</span>)), <span class="kw-2">&amp;mut</span> <span class="ident">got</span>)
+            .<span class="ident">dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">::std::time::Duration::ZERO</span>), <span class="kw-2">&amp;mut</span> <span class="ident">got</span>)
             .<span class="ident">unwrap</span>();
 
         <span class="macro">assert_eq!</span>(<span class="ident">got</span>, (<span class="bool-val">false</span>, <span class="bool-val">false</span>));
@@ -542,7 +545,7 @@
         <span class="comment">// a message is send</span>
         <span class="ident">tx</span>.<span class="ident">send</span>(()).<span class="ident">unwrap</span>();
         <span class="ident">event_loop</span>
-            .<span class="ident">dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">::std::time::Duration::from_millis</span>(<span class="number">0</span>)), <span class="kw-2">&amp;mut</span> <span class="ident">got</span>)
+            .<span class="ident">dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">::std::time::Duration::ZERO</span>), <span class="kw-2">&amp;mut</span> <span class="ident">got</span>)
             .<span class="ident">unwrap</span>();
 
         <span class="macro">assert_eq!</span>(<span class="ident">got</span>, (<span class="bool-val">true</span>, <span class="bool-val">false</span>));
@@ -550,7 +553,7 @@
         <span class="comment">// the sender is dropped</span>
         <span class="ident">::std::mem::drop</span>(<span class="ident">tx</span>);
         <span class="ident">event_loop</span>
-            .<span class="ident">dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">::std::time::Duration::from_millis</span>(<span class="number">0</span>)), <span class="kw-2">&amp;mut</span> <span class="ident">got</span>)
+            .<span class="ident">dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">::std::time::Duration::ZERO</span>), <span class="kw-2">&amp;mut</span> <span class="ident">got</span>)
             .<span class="ident">unwrap</span>();
 
         <span class="macro">assert_eq!</span>(<span class="ident">got</span>, (<span class="bool-val">true</span>, <span class="bool-val">true</span>));
@@ -578,12 +581,11 @@
                     }
                 },
             )
-            .<span class="ident">map_err</span>(<span class="ident">Into</span>::<span class="op">&lt;</span><span class="ident">std::io::Error</span><span class="op">&gt;</span><span class="ident">::into</span>)
             .<span class="ident">unwrap</span>();
 
         <span class="comment">// nothing is sent, nothing is received</span>
         <span class="ident">event_loop</span>
-            .<span class="ident">dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">::std::time::Duration::from_millis</span>(<span class="number">0</span>)), <span class="kw-2">&amp;mut</span> <span class="ident">received</span>)
+            .<span class="ident">dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">::std::time::Duration::ZERO</span>), <span class="kw-2">&amp;mut</span> <span class="ident">received</span>)
             .<span class="ident">unwrap</span>();
 
         <span class="macro">assert_eq!</span>(<span class="ident">received</span>.<span class="number">0</span>, <span class="number">0</span>);
@@ -596,7 +598,7 @@
 
         <span class="comment">// empty it</span>
         <span class="ident">event_loop</span>
-            .<span class="ident">dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">::std::time::Duration::from_millis</span>(<span class="number">0</span>)), <span class="kw-2">&amp;mut</span> <span class="ident">received</span>)
+            .<span class="ident">dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">::std::time::Duration::ZERO</span>), <span class="kw-2">&amp;mut</span> <span class="ident">received</span>)
             .<span class="ident">unwrap</span>();
 
         <span class="macro">assert_eq!</span>(<span class="ident">received</span>.<span class="number">0</span>, <span class="number">2</span>);
@@ -608,7 +610,7 @@
 
         <span class="comment">// final read of the channel</span>
         <span class="ident">event_loop</span>
-            .<span class="ident">dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">::std::time::Duration::from_millis</span>(<span class="number">0</span>)), <span class="kw-2">&amp;mut</span> <span class="ident">received</span>)
+            .<span class="ident">dispatch</span>(<span class="prelude-val">Some</span>(<span class="ident">::std::time::Duration::ZERO</span>), <span class="kw-2">&amp;mut</span> <span class="ident">received</span>)
             .<span class="ident">unwrap</span>();
 
         <span class="macro">assert_eq!</span>(<span class="ident">received</span>.<span class="number">0</span>, <span class="number">3</span>);
@@ -616,5 +618,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="calloop" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (bed05e996 2022-05-02)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="calloop" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (cb1219871 2022-05-08)" ></div>
 </body></html>

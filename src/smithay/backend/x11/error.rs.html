@@ -152,6 +152,10 @@
 <span id="147">147</span>
 <span id="148">148</span>
 <span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::io</span>;
 
 <span class="kw">use</span> <span class="ident">gbm::DeviceDestroyedError</span>;
@@ -168,6 +172,10 @@
     <span class="doccomment">/// Connecting to the X server failed.</span>
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Connecting to the X server failed&quot;</span>)]</span>
     <span class="ident">ConnectionFailed</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">ConnectError</span>),
+
+    <span class="doccomment">/// Connection to X server was lost.</span>
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Connection to the X server was lost&quot;</span>)]</span>
+    <span class="ident">ConnectionLost</span>,
 
     <span class="doccomment">/// A required X11 extension was not present or has the right version.</span>
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;{0}&quot;</span>)]</span>
@@ -302,5 +310,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (bed05e996 2022-05-02)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (cb1219871 2022-05-08)" ></div>
 </body></html>

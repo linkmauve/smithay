@@ -583,9 +583,6 @@
 <span id="578">578</span>
 <span id="579">579</span>
 <span id="580">580</span>
-<span id="581">581</span>
-<span id="582">582</span>
-<span id="583">583</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Implementation of input backend trait for types provided by `libinput`</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::backend::input</span>::{<span class="self">self</span> <span class="kw">as</span> <span class="ident">backend</span>, <span class="ident">Axis</span>, <span class="ident">InputBackend</span>, <span class="ident">InputEvent</span>};
@@ -600,6 +597,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;backend_session&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">std::path::Path</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">io</span>,
     <span class="ident">os::unix::io</span>::{<span class="ident">AsRawFd</span>, <span class="ident">RawFd</span>},
     <span class="ident">path::PathBuf</span>,
 };
@@ -626,7 +624,7 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;backend_session&quot;</span>)]</span>
     <span class="ident">links</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SignalToken</span><span class="op">&gt;</span>,
     <span class="ident">logger</span>: <span class="ident">::slog::Logger</span>,
-    <span class="ident">token</span>: <span class="ident">Token</span>,
+    <span class="ident">token</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">LibinputInputBackend</span> {
@@ -643,7 +641,7 @@
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;backend_session&quot;</span>)]</span>
             <span class="ident">links</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">logger</span>: <span class="ident">log</span>,
-            <span class="ident">token</span>: <span class="ident">Token::invalid</span>(),
+            <span class="ident">token</span>: <span class="prelude-val">None</span>,
         }
     }
 }
@@ -1045,17 +1043,13 @@
     <span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">InputEvent</span><span class="op">&lt;</span><span class="ident">LibinputInputBackend</span><span class="op">&gt;</span>;
     <span class="kw">type</span> <span class="ident">Metadata</span> <span class="op">=</span> ();
     <span class="kw">type</span> <span class="ident">Ret</span> <span class="op">=</span> ();
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">io::Error</span>;
 
-    <span class="kw">fn</span> <span class="ident">process_events</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="kw">_</span>: <span class="ident">Readiness</span>,
-        <span class="ident">token</span>: <span class="ident">Token</span>,
-        <span class="kw-2">mut</span> <span class="ident">callback</span>: <span class="ident">F</span>,
-    ) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">PostAction</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">process_events</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw">_</span>: <span class="ident">Readiness</span>, <span class="ident">token</span>: <span class="ident">Token</span>, <span class="kw-2">mut</span> <span class="ident">callback</span>: <span class="ident">F</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">PostAction</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident"><span class="self">Self</span>::Event</span>, <span class="kw-2">&amp;mut</span> ()) -&gt; <span class="ident"><span class="self">Self</span>::Ret</span>,
     {
-        <span class="kw">if</span> <span class="ident">token</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">token</span> {
+        <span class="kw">if</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">==</span> <span class="self">self</span>.<span class="ident">token</span> {
             <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">dispatch</span>()<span class="question-mark">?</span>;
 
             <span class="kw">for</span> <span class="ident">event</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">context</span> {
@@ -1154,21 +1148,21 @@
         <span class="prelude-val">Ok</span>(<span class="ident">PostAction::Continue</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">poll</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span>, <span class="ident">factory</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenFactory</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">token</span> <span class="op">=</span> <span class="ident">factory</span>.<span class="ident">token</span>();
-        <span class="ident">poll</span>.<span class="ident">register</span>(<span class="self">self</span>.<span class="ident">as_raw_fd</span>(), <span class="ident">Interest::READ</span>, <span class="ident">Mode::Level</span>, <span class="self">self</span>.<span class="ident">token</span>)
+    <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">poll</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span>, <span class="ident">factory</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenFactory</span>) -&gt; <span class="ident">calloop::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">token</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">factory</span>.<span class="ident">token</span>());
+        <span class="ident">poll</span>.<span class="ident">register</span>(<span class="self">self</span>.<span class="ident">as_raw_fd</span>(), <span class="ident">Interest::READ</span>, <span class="ident">Mode::Level</span>, <span class="self">self</span>.<span class="ident">token</span>.<span class="ident">unwrap</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">reregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">poll</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span>, <span class="ident">factory</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenFactory</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">token</span> <span class="op">=</span> <span class="ident">factory</span>.<span class="ident">token</span>();
-        <span class="ident">poll</span>.<span class="ident">reregister</span>(<span class="self">self</span>.<span class="ident">as_raw_fd</span>(), <span class="ident">Interest::READ</span>, <span class="ident">Mode::Level</span>, <span class="self">self</span>.<span class="ident">token</span>)
+    <span class="kw">fn</span> <span class="ident">reregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">poll</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span>, <span class="ident">factory</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenFactory</span>) -&gt; <span class="ident">calloop::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">token</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">factory</span>.<span class="ident">token</span>());
+        <span class="ident">poll</span>.<span class="ident">reregister</span>(<span class="self">self</span>.<span class="ident">as_raw_fd</span>(), <span class="ident">Interest::READ</span>, <span class="ident">Mode::Level</span>, <span class="self">self</span>.<span class="ident">token</span>.<span class="ident">unwrap</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">unregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">poll</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">token</span> <span class="op">=</span> <span class="ident">Token::invalid</span>();
+    <span class="kw">fn</span> <span class="ident">unregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">poll</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span>) -&gt; <span class="ident">calloop::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">token</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="ident">poll</span>.<span class="ident">unregister</span>(<span class="self">self</span>.<span class="ident">as_raw_fd</span>())
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (bed05e996 2022-05-02)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="smithay" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (cb1219871 2022-05-08)" ></div>
 </body></html>

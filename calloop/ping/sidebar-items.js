@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["make_ping","Create a new ping event source"]],"struct":[["Ping","The Ping handle"],["PingSource","The ping event source"]]});
+initSidebarItems({"fn":[["make_ping","Create a new ping event source"]],"struct":[["PingError","An error arising from processing events for a ping."]],"type":[["Ping","The ping event source"],["PingSource","The Ping handle"]]});

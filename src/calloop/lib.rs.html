@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/calloop-0.9.3/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/calloop-0.10.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../calloop/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -154,6 +154,10 @@
 <span id="149">149</span>
 <span id="150">150</span>
 <span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Calloop, a Callback-based Event Loop</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This crate provides an [`EventLoop`] type, which is a small abstraction</span>
@@ -169,11 +173,14 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## How to use it</span>
 <span class="doccomment">//!</span>
+<span class="doccomment">//! Below is a quick usage example of calloop. For a more in-depth tutorial, see</span>
+<span class="doccomment">//! the [calloop book](https://smithay.github.io/calloop).</span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! For simple uses, you can just add event sources with callbacks to the event</span>
 <span class="doccomment">//! loop. For example, here&#39;s a runnable program that exits after five seconds:</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```no_run</span>
-<span class="doccomment">//! use calloop::{timer::Timer, EventLoop, LoopSignal};</span>
+<span class="doccomment">//! use calloop::{timer::{Timer, TimeoutAction}, EventLoop, LoopSignal};</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! fn main() {</span>
 <span class="doccomment">//!     // Create the event loop. The loop is parameterised by the kind of shared</span>
@@ -190,18 +197,8 @@
 <span class="doccomment">//!     // callbacks.</span>
 <span class="doccomment">//!     let handle = event_loop.handle();</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//!     // Create our event source, a timer. Note that this is also parameterised by</span>
-<span class="doccomment">//!     // the data for the events it generates. We&#39;ve let Rust infer that here.</span>
-<span class="doccomment">//!     let source = Timer::new().expect(&quot;Failed to create timer event source!&quot;);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!     // Most event source APIs provide two things: an event source to go into the</span>
-<span class="doccomment">//!     // event loop, and some way of triggering that source from elsewhere. In</span>
-<span class="doccomment">//!     // this case, we use a handle to the timer to set timeouts.</span>
-<span class="doccomment">//!     //</span>
-<span class="doccomment">//!     // Note that this can go before or after the call to insert_source(), and</span>
-<span class="doccomment">//!     // even inside another event callback.</span>
-<span class="doccomment">//!     let timer_handle = source.handle();</span>
-<span class="doccomment">//!     timer_handle.add_timeout(std::time::Duration::from_secs(5), &quot;Timeout reached!&quot;);</span>
+<span class="doccomment">//!     // Create our event source, a timer, that will expire in 2 seconds</span>
+<span class="doccomment">//!     let source = Timer::from_duration(std::time::Duration::from_secs(2));</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!     // Inserting an event source takes this general form. It can also be done</span>
 <span class="doccomment">//!     // from within the callback of another event source.</span>
@@ -212,7 +209,8 @@
 <span class="doccomment">//!             // a callback that is invoked whenever this source generates an event</span>
 <span class="doccomment">//!             |event, _metadata, shared_data| {</span>
 <span class="doccomment">//!                 // This callback is given 3 values:</span>
-<span class="doccomment">//!                 // - the event generated by the source (in our case, a string slice)</span>
+<span class="doccomment">//!                 // - the event generated by the source (in our case, timer events are the Instant</span>
+<span class="doccomment">//!                 //   representing the deadline for which it has fired)</span>
 <span class="doccomment">//!                 // - &amp;mut access to some metadata, specific to the event source (in our case, a</span>
 <span class="doccomment">//!                 //   timer handle)</span>
 <span class="doccomment">//!                 // - &amp;mut access to the global shared data that was passed to EventLoop::run or</span>
@@ -220,8 +218,13 @@
 <span class="doccomment">//!                 //</span>
 <span class="doccomment">//!                 // The return type is just () because nothing uses it. Some</span>
 <span class="doccomment">//!                 // sources will expect a Result of some kind instead.</span>
-<span class="doccomment">//!                 println!(&quot;Event fired: {}&quot;, event);</span>
+<span class="doccomment">//!                 println!(&quot;Timeout for {:?} expired!&quot;, event);</span>
+<span class="doccomment">//!                 // notify the event loop to stop running using the signal in the shared data</span>
+<span class="doccomment">//!                 // (see below)</span>
 <span class="doccomment">//!                 shared_data.stop();</span>
+<span class="doccomment">//!                 // The timer event source requires us to return a TimeoutAction to</span>
+<span class="doccomment">//!                 // specify if the timer should be rescheduled. In our case we just drop it.</span>
+<span class="doccomment">//!                 TimeoutAction::Drop</span>
 <span class="doccomment">//!             },</span>
 <span class="doccomment">//!         )</span>
 <span class="doccomment">//!         .expect(&quot;Failed to insert event source!&quot;);</span>
@@ -293,18 +296,23 @@
 
 <span class="attribute">#![<span class="ident">warn</span>(<span class="ident">missing_docs</span>, <span class="ident">missing_debug_implementations</span>)]</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::needless_doctest_main</span>)]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">feature</span>(<span class="ident">doc_cfg</span>))]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">coverage</span>, <span class="ident">feature</span>(<span class="ident">no_coverage</span>))]</span>
 
 <span class="kw">mod</span> <span class="ident">sys</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sys</span>::{<span class="ident">Interest</span>, <span class="ident">Mode</span>, <span class="ident">Poll</span>, <span class="ident">Readiness</span>, <span class="ident">Token</span>, <span class="ident">TokenFactory</span>};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::loop_logic</span>::{<span class="ident">EventLoop</span>, <span class="ident">InsertError</span>, <span class="ident">LoopHandle</span>, <span class="ident">LoopSignal</span>, <span class="ident">RegistrationToken</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::loop_logic</span>::{<span class="ident">EventLoop</span>, <span class="ident">LoopHandle</span>, <span class="ident">LoopSignal</span>, <span class="ident">RegistrationToken</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::sources</span>::<span class="kw-2">*</span>;
 
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="ident">InsertError</span>, <span class="prelude-ty">Result</span>};
+
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">io</span>;
-<span class="kw">mod</span> <span class="ident">list</span>;
 <span class="kw">mod</span> <span class="ident">loop_logic</span>;
+<span class="kw">mod</span> <span class="ident">macros</span>;
 <span class="kw">mod</span> <span class="ident">sources</span>;
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="calloop" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (bed05e996 2022-05-02)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="calloop" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (cb1219871 2022-05-08)" ></div>
 </body></html>
